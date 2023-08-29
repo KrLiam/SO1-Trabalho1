@@ -5,9 +5,13 @@
 
 using namespace std;
 
-class ProcessParams
+struct ProcessParams
 {
 public:
+	int creation_time;
+	int duration; //seconds
+	int priority;
+
 	ProcessParams(int c, int d, int p) { 
 		creation_time = c;
 		duration = d;
@@ -18,12 +22,8 @@ public:
 		os << "Creation time = " << p.creation_time << " duration = " << p.duration << " priority = " << p.priority << endl;
 		return os;
 	}
-	
-private:	
-	int creation_time;
-	int duration; //seconds
-	int priority;
 };
+
 
 class File
 {
@@ -72,11 +72,3 @@ private:
 	ifstream myfile; 
 	vector<ProcessParams *> processes;
 };
-
-int main()
-{
-	File f;
-	f.read_file();
-	f.print_processes_params();
-}
-
