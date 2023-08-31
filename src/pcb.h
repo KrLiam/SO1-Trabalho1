@@ -1,3 +1,5 @@
+#pragma once
+
 #include "state.h"
 #include "context.h"
 

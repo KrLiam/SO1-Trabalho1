@@ -1,3 +1,4 @@
+#pragma once
 
 #include <vector>
 
@@ -9,11 +10,14 @@ class ProcessTable {
 public:
     void createProcess(int creationTime, int duration, int priority);
 
-    PCB& getProcess(int id) {}
+    PCB& getProcess(int id);
 
-    vector<PCB&>& getByState(ProcessState);
+    std::vector<PCB*>& getByState(ProcessState state);
 
-    void changeState(PCB& aff, ProcessState newState);
+    void changeState(PCB* process, ProcessState newState) {
+        changeState(*process, newState);
+    }
+    void changeState(PCB& process, ProcessState newState);
 
     void clear();
 };

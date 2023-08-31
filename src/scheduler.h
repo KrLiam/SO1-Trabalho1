@@ -1,6 +1,9 @@
 
+#pragma once
+
 #include <vector>
 #include <queue>
+#include <algorithm>
 
 #include "file.h"
 #include "pcb.h"
@@ -21,7 +24,10 @@ public:
         table.clear();
 
         // preparar fila de processos
-        // certifica que estao na ordem de criacao adequada	sort(processes.begin(), process.end(), [](ProcessParams a, ProcessParams b) {		return a.creationTime <= b.creationTime;	});
+        // certifica que estao na ordem de criacao adequada
+        std::sort(processes.begin(), processes.end(), [](ProcessParams a, ProcessParams b) {
+            return a.creation_time <= b.creation_time;
+        });
         std::queue<ProcessParams>  creationQueue;
         for (ProcessParams p : processes) creationQueue.push(p);
 
@@ -36,7 +42,7 @@ public:
                 table.createProcess(p.creation_time, p.duration, p.priority);
                 creationQueue.pop();
             }
-            for (PCB& process : table.getByState(pNew)) {
+            for (PCB* process : table.getByState(pNew)) {
                 table.changeState(process, pReady);
             }
 
@@ -61,7 +67,7 @@ public:
             }
 
             // testa se o processo ativo deve ser preemptado
-            if (schedule.test(activeProcess)) {
+            if (schedule.test(*activeProcess)) {
                 table.changeState(activeProcess, pReady);
                 activeProcess = NULL;
                 continue;
