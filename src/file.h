@@ -63,6 +63,10 @@ public:
 		}
 	}
 
+	vector<ProcessParams *> get_processes() {
+		return processes;
+	}
+
 	~File() {
 		for(int i = 0; i < processes.size() ; i++) {
 			ProcessParams *p = processes[i];

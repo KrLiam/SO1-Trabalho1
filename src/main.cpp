@@ -1,9 +1,12 @@
 #include "file.h"
-#include "scheduler.h"
+#include "test.h"
 
 int main()
 {
 	File f;
 	f.read_file();
-	f.print_processes_params();
+	vector<ProcessParams*> all_processes = f.get_processes();
+	Scheduler scheduler = Scheduler();
+	vector<int> result = scheduler.simulate(all_processes);
+	scheduler.print_graph(result, 10, 4);
 }

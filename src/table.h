@@ -29,7 +29,9 @@ public:
         changeState(&process, pNew);
     }
 
-    PCB& getProcess(int id);
+    PCB& getProcess(int id) {
+        return processes.at(id);
+    };
 
     const std::vector<PCB*>& getByState(ProcessState state);
 
