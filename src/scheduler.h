@@ -51,6 +51,7 @@ public:
             // testa se o processo encerrou
             if (activeProcess && activeProcess->finished()) {
                 table.changeState(activeProcess, pFinished);
+                table.getProcess(activeProcess->id).endTime = time;
                 activeProcess = NULL;
             }
             // se não encerrou, testa se o processo ativo deve ser preemptado
@@ -89,7 +90,7 @@ public:
             cout << left << setw(6) << to_string(timestamp) + "-" + to_string(timestamp+1);
             for (int pid = 0; pid < total_processes; pid++) {
                 
-                bool process_is_running_or_waiting = (table.getProcess(pid).startTime <= timestamp) && (table.getProcess(pid).startTime + table.getProcess(pid).duration > timestamp);
+                bool process_is_running_or_waiting = (table.getProcess(pid).startTime <= timestamp) && (table.getProcess(pid).endTime > timestamp);
                 if (result[timestamp] == pid) {
                     cout << "## ";
                 } else if (process_is_running_or_waiting) {
