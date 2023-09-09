@@ -33,7 +33,7 @@ class File {
 
 public:
 	File() {
-		myfile.open("entrada.txt");
+		myfile.open("../entrada.txt");
 		if (!myfile.is_open()) {
 			cout << "Erro ao abrir o arquivo!\n";
 		}
