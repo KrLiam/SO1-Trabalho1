@@ -33,19 +33,30 @@ public:
 };
 
 class SJF : public SchedulingStrategy {
-	std::queue<PCB*> queue;
+	class CompareDuration {
+	public:
+		bool operator()(PCB* a, PCB* b) {
+			return a->duration > b->duration;
+		}
+	};
+	std::priority_queue<PCB*, std::vector<PCB*>, CompareDuration> queue;
 
 public:
 	void insert(PCB& pcb) {
-		return;
+		queue.push(&pcb);
 	}
 
 	PCB* pick() {
-	return NULL;
+		if (!queue.size()) return NULL;
+		PCB* pcb = queue.top();
+		queue.pop();
+		return pcb;
 	}
 
 	bool test(PCB& pcb) {
-		return false;
+		if (!queue.size()) return false;
+		PCB* potential_next_process = queue.top();
+		return pcb.duration > potential_next_process->duration;
 	}
 };
 
