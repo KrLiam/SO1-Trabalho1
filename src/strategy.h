@@ -54,11 +54,6 @@ public:
 
 	bool test(PCB& pcb) {
 		quantum++;
-
-		if (quantum >= 2) {
-			queue.push(&pcb);
-			return true;
-		}
-		return false;
+		return quantum >= 2;
 	}
 };
