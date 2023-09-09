@@ -4,6 +4,7 @@
 #include <vector>
 #include <queue>
 #include <algorithm>
+#include <iomanip>
 
 #include "file.h"
 #include "pcb.h"
@@ -13,12 +14,12 @@
 class Scheduler
 {
     ProcessTable table;
-    SchedulingStrategy schedule;
-    PCB* activeProcess;
-
-    Scheduler(SchedulingStrategy strategy) : schedule(strategy) {}
+    SchedulingStrategy& schedule;
+    PCB* activeProcess = NULL;
 
 public:
+
+    Scheduler(SchedulingStrategy& strategy) : schedule(strategy) {}
 
     std::vector<int> simulate(std::vector<ProcessParams> processes) {
         table.clear();
@@ -26,7 +27,7 @@ public:
         // preparar fila de processos
         // certifica que estao na ordem de criacao adequada
         std::sort(processes.begin(), processes.end(), [](ProcessParams a, ProcessParams b) {
-            return a.creation_time <= b.creation_time;
+            return a.creation_time < b.creation_time;
         });
         std::queue<ProcessParams>  creationQueue;
         for (ProcessParams p : processes) creationQueue.push(p);
@@ -44,6 +45,20 @@ public:
             }
             for (PCB* process : table.getByState(pNew)) {
                 table.changeState(process, pReady);
+                schedule.insert(*process);
+            }
+
+            // testa se o processo encerrou
+            if (activeProcess && activeProcess->finished()) {
+                table.changeState(activeProcess, pFinished);
+                activeProcess = NULL;
+            }
+            // se não encerrou, testa se o processo ativo deve ser preemptado
+            else if (activeProcess && schedule.test(*activeProcess)) {
+                // devolve processo para a estratégia
+                table.changeState(activeProcess, pReady);
+                schedule.insert(*activeProcess);
+                activeProcess = NULL;
             }
 
             // escolhe um processo se nao há um processo ativo
@@ -58,20 +73,32 @@ public:
             time++;
             activeProcess->executingTime++;
             result.push_back(activeProcess->id);
+        }
+    }
 
-            // testa se o processo encerrou
-            if (activeProcess->executingTime >= activeProcess->duration) {
-                table.changeState(activeProcess, pFinished);
-                activeProcess = NULL;
-                continue;
-            }
+    void print_graph(std::vector<int> result) {
+        int total_processes = table.getProcessCount();
+        int total_time = result.size();
 
-            // testa se o processo ativo deve ser preemptado
-            if (schedule.test(*activeProcess)) {
-                table.changeState(activeProcess, pReady);
-                activeProcess = NULL;
-                continue;
+        cout << "tempo ";
+        for(int i = 0; i < total_processes; i++) {
+            cout << "P" << i << " ";
+        }
+        cout << endl;
+        for(int timestamp = 0; timestamp < total_time; timestamp++) {
+            cout << left << setw(6) << to_string(timestamp) + "-" + to_string(timestamp+1);
+            for (int pid = 0; pid < total_processes; pid++) {
+                
+                bool process_is_running_or_waiting = (table.getProcess(pid).startTime <= timestamp) && (table.getProcess(pid).startTime + table.getProcess(pid).duration > timestamp);
+                if (result[timestamp] == pid) {
+                    cout << "## ";
+                } else if (process_is_running_or_waiting) {
+                    cout << "-- ";
+                } else {
+                    cout << "   ";
+                }
             }
+            cout << endl;
         }
     }
 };

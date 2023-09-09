@@ -27,8 +27,9 @@ public:
 };
 
 
-class File
-{
+class File {
+	ifstream myfile; 
+	vector<ProcessParams> processes;
 
 public:
 	File() {
@@ -47,7 +48,7 @@ public:
 		}
 		
 		while (myfile >> a >> b >> c) {
-			ProcessParams *p = new ProcessParams(a, b, c);
+			ProcessParams p(a, b, c);
 			processes.push_back(p);
 		}
 
@@ -55,26 +56,15 @@ public:
 	}
 
 	void print_processes_params() {
-		vector<ProcessParams *>::iterator iter = processes.begin();
+		vector<ProcessParams>::iterator iter = processes.begin();
 
 		for(iter; iter < processes.end(); iter++) {
-			ProcessParams *p = *iter;
-			cout << *p;
+			ProcessParams p = *iter;
+			cout << p;
 		}
 	}
 
-	vector<ProcessParams *> get_processes() {
+	vector<ProcessParams> get_processes() {
 		return processes;
 	}
-
-	~File() {
-		for(int i = 0; i < processes.size() ; i++) {
-			ProcessParams *p = processes[i];
-			delete p;
-		}
-	}
-
-private:
-	ifstream myfile; 
-	vector<ProcessParams *> processes;
 };
