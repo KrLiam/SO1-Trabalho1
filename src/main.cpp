@@ -1,8 +1,8 @@
 #include <iostream>
 
 #include "file.h"
-#include "simulator.h"
 #include "scheduler.h"
+#include "simulator.h"
 
 int main(int argc, char const *argv[])
 {
@@ -14,10 +14,10 @@ int main(int argc, char const *argv[])
 	f.read_file();
 	std::vector<ProcessParams> all_processes = f.get_processes();
 
-	char strategy_name = argv[1][0];
+	char scheduler_name = argv[1][0];
 	
 	Scheduler* scheduler;
-	switch (strategy_name)
+	switch (scheduler_name)
 	{
 	case 'f':
 		scheduler = new SchedulerFCFS();
@@ -35,20 +35,16 @@ int main(int argc, char const *argv[])
 		scheduler = new SchedulerRoundRobin();
 		break;
 	default:
-		cout << "Invalid strategy" << endl;
+		std::cout << "Invalid scheduler strategy" << std::endl;
 		return 1;
 	}
 
-	
+
 	Simulator simulator(*scheduler);
 
-	std::vector<int> result = simulator.simulate(all_processes);
-	simulator.print_graph(result);
+	simulator.simulate(all_processes);
 
+	simulator.print_graph();
 
-	std::cout << "[";
-	for (int id : result) {
-		std::cout << id << ", ";
-	}
-	std::cout << "]" << std::endl;
+	simulator.show_data();
 }

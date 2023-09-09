@@ -14,15 +14,28 @@
 class Simulator
 {
     ProcessTable table;
-    Scheduler& schedule;
+    Scheduler& scheduler;
     PCB* activeProcess = NULL;
+    Context activeContext;
+    std::vector<int> result;
 
 public:
+    void switch_context(PCB* newProcess) {
+        if (activeProcess) {
+            activeProcess->context = activeContext;
+        }
+        activeProcess = NULL;
+        if (newProcess) {
+            activeProcess = newProcess;
+            activeContext = newProcess->context;
+        }
+    }
+    
+    Simulator(Scheduler& strategy) : scheduler(strategy) {}
 
-    Simulator(Scheduler& strategy) : schedule(strategy) {}
-
-    std::vector<int> simulate(std::vector<ProcessParams> processes) {
+    void simulate(std::vector<ProcessParams> processes) {
         table.clear();
+        result.clear();
 
         // preparar fila de processos
         // certifica que estao na ordem de criacao adequada
@@ -31,9 +44,9 @@ public:
         });
         std::queue<ProcessParams>  creationQueue;
         for (ProcessParams p : processes) creationQueue.push(p);
+        
 
         int time = 0;
-        std::vector<int> result;
 
         while (1) {
             while (!creationQueue.empty()) {
@@ -45,7 +58,7 @@ public:
             }
             for (PCB* process : table.getByState(pNew)) {
                 table.changeState(process, pReady);
-                schedule.insert(*process);
+                scheduler.insert(*process);
             }
 
             // testa se o processo encerrou
@@ -55,21 +68,22 @@ public:
                 activeProcess = NULL;
             }
             // se não encerrou, testa se o processo ativo deve ser preemptado
-            else if (activeProcess && schedule.test(*activeProcess)) {
+            else if (activeProcess && scheduler.test(*activeProcess)) {
                 // devolve processo para a estratégia
                 table.changeState(activeProcess, pReady);
-                schedule.insert(*activeProcess);
+                scheduler.insert(*activeProcess);
                 activeProcess = NULL;
             }
 
             // escolhe um processo se nao há um processo ativo
             if (!activeProcess) {
-                activeProcess = schedule.pick();
-                // encerra se não há mais processos para serem executados
-                if (!activeProcess) {
-                    return result;
+                PCB* nextProcess = scheduler.pick();
+                if (nextProcess) {
+                    switch_context(nextProcess);
                 }
             }
+
+            if (!activeProcess && creationQueue.empty()) return;
 
             time++;
             activeProcess->executingTime++;
@@ -77,29 +91,61 @@ public:
         }
     }
 
-    void print_graph(std::vector<int> result) {
+    std::vector<int> get_result() {
+        return result;
+    }
+
+    void print_graph() {
         int total_processes = table.getProcessCount();
         int total_time = result.size();
 
-        cout << "tempo ";
+        std::cout << "tempo ";
         for(int i = 0; i < total_processes; i++) {
-            cout << "P" << i << " ";
+            std::cout << "P" << i << " ";
         }
-        cout << endl;
+        std::cout << std::endl;
         for(int timestamp = 0; timestamp < total_time; timestamp++) {
-            cout << left << setw(6) << to_string(timestamp) + "-" + to_string(timestamp+1);
+            std::cout << left << std::setw(6) << std::to_string(timestamp) + "-" + std::to_string(timestamp+1);
             for (int pid = 0; pid < total_processes; pid++) {
                 
-                bool process_is_running_or_waiting = (table.getProcess(pid).startTime <= timestamp) && (table.getProcess(pid).endTime > timestamp);
+                PCB& process = table.getProcess(pid);
+                bool process_is_running_or_waiting = (process.startTime <= timestamp) && (process.endTime > timestamp);
                 if (result[timestamp] == pid) {
-                    cout << "## ";
+                    std::cout << "## ";
                 } else if (process_is_running_or_waiting) {
-                    cout << "-- ";
+                    std::cout << "-- ";
                 } else {
-                    cout << "   ";
+                    std::cout << "   ";
                 }
             }
-            cout << endl;
+            std::cout << std::endl;
         }
+    }
+
+    void show_data() {
+        int context_changes = result.size() > 0;
+        for (int i = 1; i < result.size(); i++) {
+            if (result[i] != result[i-1]) {
+                context_changes++;
+            }
+        }
+        
+        float average_wait_time = .0;
+        for (PCB p : table.getAllProcesses()) {
+            average_wait_time += p.endTime - p.startTime - p.duration;
+        }
+        average_wait_time /= table.getProcessCount();
+        
+        float average_turnaround_time = .0;
+        for (PCB p : table.getAllProcesses()) {
+            std::cout << "Processo " << p.id << " - Turnaround time: " << p.endTime - p.startTime << std::endl;
+            average_turnaround_time += p.endTime - p.startTime;
+        }
+        average_turnaround_time /= table.getProcessCount();
+
+        std::cout << "Tempo total de execução: " << result.size() << std::endl;
+        std::cout << "Número de mudanças de contexto: " << context_changes << std::endl;
+        std::cout << "Tempo médio de espera: " << average_wait_time << std::endl;
+        std::cout << "Tempo médio de turnaround: " << average_turnaround_time << std::endl;
     }
 };
