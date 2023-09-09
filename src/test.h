@@ -8,12 +8,12 @@
 #include "file.h"
 #include "pcb.h"
 #include "table.h"
-#include "strategy.h"
+#include "scheduler.h"
 #include <iomanip>
 
 using namespace std;
 
-class Scheduler
+class Simulator
 {
     ProcessTable table;
 public:

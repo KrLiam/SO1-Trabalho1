@@ -1,105 +1,140 @@
-
 #pragma once
 
 #include <vector>
-#include <queue>
-#include <algorithm>
-#include <iomanip>
 
-#include "file.h"
 #include "pcb.h"
-#include "table.h"
-#include "strategy.h"
 
-class Scheduler
-{
-    ProcessTable table;
-    SchedulingStrategy& schedule;
-    PCB* activeProcess = NULL;
+class Scheduler {
+public:
+    virtual void insert(PCB& pcb) = 0;
+    virtual PCB* pick() = 0;
+    virtual bool test(PCB& pcb) = 0;
+};
+
+
+class SchedulerFCFS : public Scheduler {
+	std::queue<PCB*> queue;
+
+public:
+	void insert(PCB& pcb) {
+		queue.push(&pcb);
+	}
+
+	PCB* pick() {
+		if (!queue.size()) return NULL;
+		PCB* pcb = queue.front();
+        queue.pop();
+        return pcb;
+	}
+
+	bool test(PCB& pcb) {
+		return false; // never preempts
+	}
+};
+
+class SchedulerSJF : public Scheduler {
+	class CompareDuration {
+	public:
+		bool operator()(PCB* a, PCB* b) {
+			return a->duration > b->duration;
+		}
+	};
+	std::priority_queue<PCB*, std::vector<PCB*>, CompareDuration> queue;
+
+public:
+	void insert(PCB& pcb) {
+		queue.push(&pcb);
+	}
+
+	PCB* pick() {
+		if (!queue.size()) return NULL;
+		PCB* pcb = queue.top();
+		queue.pop();
+		return pcb;
+	}
+
+	bool test(PCB& pcb) {
+		if (!queue.size()) return false;
+		PCB* potential_next_process = queue.top();
+		return pcb.duration > potential_next_process->duration;
+	}
+};
+
+class SchedulerPreemptivePriority : public Scheduler {
+	class ComparePriority {
+	public:
+		bool operator()(PCB* a, PCB* b) {
+			return a->priority < b->priority;
+		}
+	};
+	std::priority_queue<PCB*, std::vector<PCB*>, ComparePriority> queue;
+
+public:
+	void insert(PCB& pcb) {
+		queue.push(&pcb);
+	}
+
+	PCB* pick() {
+		if (!queue.size()) return NULL;
+		PCB* pcb = queue.top();
+		queue.pop();
+		return pcb;
+	}
+
+	bool test(PCB& pcb) {
+		if (!queue.size()) return false;
+		PCB* potential_next_process = queue.top();
+		return pcb.priority < potential_next_process->priority;
+	}
+};
+
+class SchedulerNonPreemptivePriority : public Scheduler {
+	class ComparePriority {
+	public:
+		bool operator()(PCB* a, PCB* b) {
+			return a->priority < b->priority;
+		}
+	};
+	std::priority_queue<PCB*, std::vector<PCB*>, ComparePriority> queue;
+
+public:
+	void insert(PCB& pcb) {
+		queue.push(&pcb);
+	}
+
+	PCB* pick() {
+		if (!queue.size()) return NULL;
+		PCB* pcb = queue.top();
+		queue.pop();
+		return pcb;
+	}
+
+	bool test(PCB& pcb) {
+		return false;
+	}
+};
+
+class SchedulerRoundRobin : public Scheduler {
+	std::queue<PCB*> queue;
+	int quantum = 0;
 
 public:
 
-    Scheduler(SchedulingStrategy& strategy) : schedule(strategy) {}
+	void insert(PCB& pcb) {
+		queue.push(&pcb);
+	}
 
-    std::vector<int> simulate(std::vector<ProcessParams> processes) {
-        table.clear();
+	PCB* pick() {
+		if (!queue.size()) return NULL;
 
-        // preparar fila de processos
-        // certifica que estao na ordem de criacao adequada
-        std::sort(processes.begin(), processes.end(), [](ProcessParams a, ProcessParams b) {
-            return a.creation_time < b.creation_time;
-        });
-        std::queue<ProcessParams>  creationQueue;
-        for (ProcessParams p : processes) creationQueue.push(p);
+		quantum = 0;
+		PCB* pcb = queue.front();
+        queue.pop();
+        return pcb;
+	}
 
-        int time = 0;
-        std::vector<int> result;
-
-        while (1) {
-            while (!creationQueue.empty()) {
-                ProcessParams p = creationQueue.front();
-                if (p.creation_time > time)
-                    break;
-                table.createProcess(p.creation_time, p.duration, p.priority);
-                creationQueue.pop();
-            }
-            for (PCB* process : table.getByState(pNew)) {
-                table.changeState(process, pReady);
-                schedule.insert(*process);
-            }
-
-            // testa se o processo encerrou
-            if (activeProcess && activeProcess->finished()) {
-                table.changeState(activeProcess, pFinished);
-                table.getProcess(activeProcess->id).endTime = time;
-                activeProcess = NULL;
-            }
-            // se não encerrou, testa se o processo ativo deve ser preemptado
-            else if (activeProcess && schedule.test(*activeProcess)) {
-                // devolve processo para a estratégia
-                table.changeState(activeProcess, pReady);
-                schedule.insert(*activeProcess);
-                activeProcess = NULL;
-            }
-
-            // escolhe um processo se nao há um processo ativo
-            if (!activeProcess) {
-                activeProcess = schedule.pick();
-                // encerra se não há mais processos para serem executados
-                if (!activeProcess) {
-                    return result;
-                }
-            }
-
-            time++;
-            activeProcess->executingTime++;
-            result.push_back(activeProcess->id);
-        }
-    }
-
-    void print_graph(std::vector<int> result) {
-        int total_processes = table.getProcessCount();
-        int total_time = result.size();
-
-        cout << "tempo ";
-        for(int i = 0; i < total_processes; i++) {
-            cout << "P" << i << " ";
-        }
-        cout << endl;
-        for(int timestamp = 0; timestamp < total_time; timestamp++) {
-            cout << left << setw(6) << to_string(timestamp) + "-" + to_string(timestamp+1);
-            for (int pid = 0; pid < total_processes; pid++) {
-                
-                bool process_is_running_or_waiting = (table.getProcess(pid).startTime <= timestamp) && (table.getProcess(pid).endTime > timestamp);
-                if (result[timestamp] == pid) {
-                    cout << "## ";
-                } else if (process_is_running_or_waiting) {
-                    cout << "-- ";
-                } else {
-                    cout << "   ";
-                }
-            }
-            cout << endl;
-        }
-    }
+	bool test(PCB& pcb) {
+		quantum++;
+		return quantum >= 2;
+	}
 };

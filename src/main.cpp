@@ -1,8 +1,8 @@
 #include <iostream>
 
 #include "file.h"
+#include "simulator.h"
 #include "scheduler.h"
-#include "strategy.h"
 
 int main(int argc, char const *argv[])
 {
@@ -16,23 +16,23 @@ int main(int argc, char const *argv[])
 
 	char strategy_name = argv[1][0];
 	
-	SchedulingStrategy* strategy;
+	Scheduler* scheduler;
 	switch (strategy_name)
 	{
 	case 'f':
-		strategy = new FCFS();
+		scheduler = new SchedulerFCFS();
 		break;
 	case 's':
-		strategy = new SJF();
+		scheduler = new SchedulerSJF();
 		break;
 	case 'p':
-		strategy = new PreemptivePriority();
+		scheduler = new SchedulerPreemptivePriority();
 		break;
 	case 'n':
-		strategy = new NonPreemptivePriority();
+		scheduler = new SchedulerNonPreemptivePriority();
 		break;
 	case 'r':
-		strategy = new RoundRobin();
+		scheduler = new SchedulerRoundRobin();
 		break;
 	default:
 		cout << "Invalid strategy" << endl;
@@ -40,10 +40,10 @@ int main(int argc, char const *argv[])
 	}
 
 	
-	Scheduler scheduler(*strategy);
+	Simulator simulator(*scheduler);
 
-	std::vector<int> result = scheduler.simulate(all_processes);
-	scheduler.print_graph(result);
+	std::vector<int> result = simulator.simulate(all_processes);
+	simulator.print_graph(result);
 
 
 	std::cout << "[";
