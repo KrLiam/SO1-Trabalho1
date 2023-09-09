@@ -89,14 +89,24 @@ public:
 };
 
 class NonPreemptivePriority : public SchedulingStrategy {
-	std::queue<PCB*> queue;
+	class ComparePriority {
+	public:
+		bool operator()(PCB* a, PCB* b) {
+			return a->priority < b->priority;
+		}
+	};
+	std::priority_queue<PCB*, std::vector<PCB*>, ComparePriority> queue;
+
 public:
 	void insert(PCB& pcb) {
-		return;
+		queue.push(&pcb);
 	}
 
 	PCB* pick() {
-	return NULL;
+		if (!queue.size()) return NULL;
+		PCB* pcb = queue.top();
+		queue.pop();
+		return pcb;
 	}
 
 	bool test(PCB& pcb) {
