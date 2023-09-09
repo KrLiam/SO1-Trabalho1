@@ -22,6 +22,15 @@ int main(int argc, char const *argv[])
 	case 'f':
 		strategy = new FCFS();
 		break;
+	case 's':
+		strategy = new SJF();
+		break;
+	case 'p':
+		strategy = new PreemptivePriority();
+		break;
+	case 'n':
+		strategy = new NonPreemptivePriority();
+		break;
 	case 'r':
 		strategy = new RoundRobin();
 		break;

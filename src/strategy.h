@@ -32,6 +32,54 @@ public:
 	}
 };
 
+class SJF : public SchedulingStrategy {
+	std::queue<PCB*> queue;
+
+public:
+	void insert(PCB& pcb) {
+		return;
+	}
+
+	PCB* pick() {
+	return NULL;
+	}
+
+	bool test(PCB& pcb) {
+		return false;
+	}
+};
+
+class PreemptivePriority : public SchedulingStrategy {
+	std::queue<PCB*> queue;
+public:
+	void insert(PCB& pcb) {
+		return;
+	}
+
+	PCB* pick() {
+	return NULL;
+	}
+
+	bool test(PCB& pcb) {
+		return false;
+	}
+};
+
+class NonPreemptivePriority : public SchedulingStrategy {
+	std::queue<PCB*> queue;
+public:
+	void insert(PCB& pcb) {
+		return;
+	}
+
+	PCB* pick() {
+	return NULL;
+	}
+
+	bool test(PCB& pcb) {
+		return false;
+	}
+};
 
 class RoundRobin : public SchedulingStrategy {
 	std::queue<PCB*> queue;
