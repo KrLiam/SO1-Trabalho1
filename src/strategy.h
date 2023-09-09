@@ -12,6 +12,27 @@ public:
 };
 
 
+class FCFS : public SchedulingStrategy {
+	std::queue<PCB*> queue;
+
+public:
+	void insert(PCB& pcb) {
+		queue.push(&pcb);
+	}
+
+	PCB* pick() {
+		if (!queue.size()) return NULL;
+		PCB* pcb = queue.front();
+        queue.pop();
+        return pcb;
+	}
+
+	bool test(PCB& pcb) {
+		return false; // never preempts
+	}
+};
+
+
 class RoundRobin : public SchedulingStrategy {
 	std::queue<PCB*> queue;
 	int quantum = 0;
