@@ -42,8 +42,9 @@ public:
     void switch_context(PCB* next_process) {
         if (next_process) {
             if (activeProcess) {
+                *static_cast<C*>(activeProcess->context) = *static_cast<C*>(activeContext);
                 activeProcess = next_process;
-
+                *static_cast<C*>(activeContext) = *static_cast<C*>(next_process->context);
             } else {
                 activeProcess = next_process;
                 *activeContext = *next_process->context;
