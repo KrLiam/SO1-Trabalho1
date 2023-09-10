@@ -36,13 +36,14 @@ public:
     }
 
     void show() {
-        std::cout << "registers: ";
-        for (int i = 0; i < 6; i++) {
+        std::cout << "R=[";
+        for (int i = 0; i < 5; i++) {
             std::cout << registers[i] << ", ";
         }
-        std::cout << "stackPointer: " << stackPointer;
-        std::cout << ", programCounter: " << programCounter;
-        std::cout << ", status: " << status << std::endl;
+        std::cout << registers[6] << "]"
+                  << ", SP=" << stackPointer
+                  << ", PC=" << programCounter
+                  << ", S="  << status << std::endl;
     }
 
     void tick(int seed) {
@@ -60,8 +61,8 @@ public:
 
 class ContextMIPS : public Context {
 public:
-    int size = 5;
-    long int registers[5];
+    static const int size = 32;
+    long int registers[size];
     void show() {
         for (int i = 0; i < size-1; i++) {
             std::cout << registers[i] << ", ";
@@ -81,13 +82,13 @@ public:
     }
 
     ContextMIPS() {
-        for (int i = 0; i < 6; i++) {
+        for (int i = 0; i < size; i++) {
             registers[i] = 0;
         }
     }
 
     ContextMIPS(ContextMIPS& context) {
-        for (int i = 0; i < 32; i++) {
+        for (int i = 0; i < size; i++) {
             registers[i] = context.registers[i];
         }
     }

@@ -39,7 +39,30 @@ public:
         std::cout << std::endl;
     }
 
+    void show_context_table() {
+        std::cout << "Active: ";
+        static_cast<C*>(activeContext)->show();
+
+        for (const PCB& pcb : table.getAllProcesses()) {
+            std::cout << "P" << pcb.id << ": ";
+            static_cast<C*>(pcb.context)->show();
+        }
+    }
+
     void switch_context(PCB* next_process) {
+        #if DEBUG
+        show_context_table();
+        std::cout << "--- switching context. ";
+        if (activeProcess) {
+            std::cout << "saving active to " << activeProcess->id << ". ";
+        }
+        if (next_process) {
+            std::cout << "loading " << next_process->id << " to active.";
+        }
+        std::cout << std::endl;
+        #endif
+
+
         if (next_process) {
             if (activeProcess) {
                 *static_cast<C*>(activeProcess->context) = *static_cast<C*>(activeContext);
@@ -53,6 +76,11 @@ public:
             *activeProcess->context = *activeContext;
             activeProcess = NULL;
         }
+
+        #if DEBUG
+        show_context_table();
+        std::cout << std::endl;
+        #endif
     }
     
     Simulator(Scheduler& strategy) : scheduler(strategy) {
