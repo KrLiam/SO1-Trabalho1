@@ -33,6 +33,10 @@ public:
         processes.reserve(MAX_PROCESS_COUNT);
     }
 
+    ~ProcessTable() {
+        clear();
+    }
+
     void createProcess(int creationTime, int duration, int priority) {
         if (processes.size() >= MAX_PROCESS_COUNT) return;
 
@@ -81,5 +85,11 @@ public:
         *static_cast<C*>(process->context) = context;
     }
 
-    void clear() {};
+    void clear() {
+        for (PCB& pcb : processes) {
+            delete static_cast<C*>(pcb.context);
+        }
+        processes.clear();
+        stateMap.clear();
+    };
 };
