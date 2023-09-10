@@ -40,7 +40,7 @@ int main(int argc, char const *argv[])
 	}
 
 
-	Simulator simulator(*scheduler);
+	Simulator<ContextMIPS> simulator(*scheduler);
 
 	simulator.simulate(all_processes);
 

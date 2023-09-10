@@ -32,10 +32,10 @@ public:
         processes.reserve(MAX_PROCESS_COUNT);
     }
 
-    void createProcess(int creationTime, int duration, int priority) {
+    void createProcess(int creationTime, int duration, int priority, Context* context) {
         if (processes.size() >= MAX_PROCESS_COUNT) return;
 
-        PCB& process = processes.emplace_back(getNextId(), creationTime, duration, priority);
+        PCB& process = processes.emplace_back(getNextId(), creationTime, duration, priority, context);
         changeState(&process, pNew);
     }
 

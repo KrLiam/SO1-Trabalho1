@@ -11,27 +11,52 @@
 #include "table.h"
 #include "scheduler.h"
 
+template <typename C>
 class Simulator
 {
     ProcessTable table;
     Scheduler& scheduler;
     PCB* activeProcess = NULL;
-    Context activeContext;
+    Context* activeContext;
     std::vector<int> result;
 
 public:
-    void switch_context(PCB* newProcess) {
-        if (activeProcess) {
-            activeProcess->context = activeContext;
+
+    void show_contexts(PCB* next_process) {
+        // Active Context
+        // Active Process context
+        std::cout << std::endl;
+        std::cout << "Active process: " << activeProcess->id << std::endl;
+        std::cout << "Active Process context: ";
+        static_cast<C*>(activeProcess->context)->show();
+        std::cout << "Active Context: ";
+        static_cast<C*>(activeContext)->show();
+        if (next_process) {
+            std::cout << "Next process: " << next_process->id << std::endl;
+            std::cout << "Next Process context: ";
+            static_cast<C*>(next_process->context)->show();
         }
-        activeProcess = NULL;
-        if (newProcess) {
-            activeProcess = newProcess;
-            activeContext = newProcess->context;
+        std::cout << std::endl;
+    }
+
+    void switch_context(PCB* next_process) {
+        if (next_process) {
+            if (activeProcess) {
+                activeProcess = next_process;
+
+            } else {
+                activeProcess = next_process;
+                *activeContext = *next_process->context;
+            }
+        } else {
+            *activeProcess->context = *activeContext;
+            activeProcess = NULL;
         }
     }
     
-    Simulator(Scheduler& strategy) : scheduler(strategy) {}
+    Simulator(Scheduler& strategy) : scheduler(strategy) {
+        activeContext = new C();
+    }
 
     void simulate(std::vector<ProcessParams> processes) {
         table.clear();
@@ -44,49 +69,50 @@ public:
         });
         std::queue<ProcessParams>  creationQueue;
         for (ProcessParams p : processes) creationQueue.push(p);
-        
-
         int time = 0;
 
+        // Simulação, cada iteração é um segundo
         while (1) {
+            // Checa quais processos devem ser criados no segundo atual
             while (!creationQueue.empty()) {
                 ProcessParams p = creationQueue.front();
                 if (p.creation_time > time)
                     break;
-                table.createProcess(p.creation_time, p.duration, p.priority);
+                table.createProcess(p.creation_time, p.duration, p.priority, new C());
                 creationQueue.pop();
             }
+            // Envia os processos criados para o escalonador organizá-los
             for (PCB* process : table.getByState(pNew)) {
                 table.changeState(process, pReady);
                 scheduler.insert(*process);
             }
 
-            // testa se o processo encerrou
-            if (activeProcess && activeProcess->finished()) {
-                table.changeState(activeProcess, pFinished);
-                table.getProcess(activeProcess->id).endTime = time;
-                activeProcess = NULL;
-            }
-            // se não encerrou, testa se o processo ativo deve ser preemptado
-            else if (activeProcess && scheduler.test(*activeProcess)) {
-                // devolve processo para a estratégia
-                table.changeState(activeProcess, pReady);
-                scheduler.insert(*activeProcess);
-                activeProcess = NULL;
-            }
+            bool shouldSwitch = false;
+            if (activeProcess) {
+                // Testa se o processo encerrou
+                if (activeProcess->finished()) {
+                    table.changeState(activeProcess, pFinished);
+                    table.getProcess(activeProcess->id).endTime = time;
+                    shouldSwitch = true;
+                } else if (scheduler.test(*activeProcess)) {
+                    // devolve processo para a estratégia
+                    table.changeState(activeProcess, pReady);
+                    scheduler.insert(*activeProcess);
+                    shouldSwitch = true;
+                }
+
+            } 
 
             // escolhe um processo se nao há um processo ativo
-            if (!activeProcess) {
-                PCB* nextProcess = scheduler.pick();
-                if (nextProcess) {
-                    switch_context(nextProcess);
-                }
+            if (shouldSwitch || !activeProcess) {
+                switch_context(scheduler.pick());
             }
 
             if (!activeProcess && creationQueue.empty()) return;
 
             time++;
             activeProcess->executingTime++;
+            static_cast<C*>(activeContext)->tick(activeProcess->id);
             result.push_back(activeProcess->id);
         }
     }
