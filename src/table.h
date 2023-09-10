@@ -12,12 +12,6 @@ class ProcessTable {
 
     std::unordered_map<ProcessState, std::vector<PCB*>> stateMap;
 
-    int currentId = 0;
-
-    int getNextId() {
-        return currentId++;
-    }
-
     std::vector<PCB*>& getCreateByState(ProcessState state) {
         if (stateMap.count(state) == 0) {
             stateMap.emplace(state, std::vector<PCB*>());
@@ -40,7 +34,9 @@ public:
     void createProcess(int creationTime, int duration, int priority) {
         if (processes.size() >= MAX_PROCESS_COUNT) return;
 
-        PCB& process = processes.emplace_back(getNextId(), creationTime, duration, priority, new C());
+        int id = processes.size();
+        C* context = new C();
+        PCB& process = processes.emplace_back(id, creationTime, duration, priority, context);
         changeState(&process, pNew);
     }
 
