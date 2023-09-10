@@ -5,6 +5,7 @@
 #include <iostream>
 #include "pcb.h"
 
+template <typename C>
 class ProcessTable {
     std::vector<PCB> processes;
     static const int MAX_PROCESS_COUNT = 100;
@@ -32,10 +33,10 @@ public:
         processes.reserve(MAX_PROCESS_COUNT);
     }
 
-    void createProcess(int creationTime, int duration, int priority, Context* context) {
+    void createProcess(int creationTime, int duration, int priority) {
         if (processes.size() >= MAX_PROCESS_COUNT) return;
 
-        PCB& process = processes.emplace_back(getNextId(), creationTime, duration, priority, context);
+        PCB& process = processes.emplace_back(getNextId(), creationTime, duration, priority, new C());
         changeState(&process, pNew);
     }
 
@@ -70,6 +71,14 @@ public:
         }
 
         process->processState = state;        
+    }
+
+    C loadContext(PCB* process) {
+        return *static_cast<C*>(process->context);
+    }
+
+    void saveContext(PCB* process, C context) {
+        *static_cast<C*>(process->context) = context;
     }
 
     void clear() {};

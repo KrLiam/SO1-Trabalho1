@@ -12,7 +12,7 @@ struct PCB
     int priority;
     ProcessState processState = pNew;
     int executingTime;
-    Context* context ;
+    Context* context;
 
     PCB(int id, int startTime, int duration, int priority, Context* context)
         : id(id),
@@ -23,14 +23,6 @@ struct PCB
           processState(pNew),
           executingTime(0),
           context(context) {}
-    
-    // ~PCB() {
-    //     if (context) delete context;
-    // }
-
-    void set_context(Context* context) {
-        *(this->context) = *context;
-    }
 
     bool finished() {
         return executingTime >= duration;

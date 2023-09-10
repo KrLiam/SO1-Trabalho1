@@ -14,11 +14,12 @@
 template <typename C>
 class Simulator
 {
-    ProcessTable table;
+    ProcessTable<C> table;
     Scheduler& scheduler;
     PCB* activeProcess = NULL;
-    Context* activeContext;
     std::vector<int> result;
+    
+    C activeContext;
 
 public:
 
@@ -30,7 +31,7 @@ public:
         std::cout << "Active Process context: ";
         static_cast<C*>(activeProcess->context)->show();
         std::cout << "Active Context: ";
-        static_cast<C*>(activeContext)->show();
+        activeContext.show();
         if (next_process) {
             std::cout << "Next process: " << next_process->id << std::endl;
             std::cout << "Next Process context: ";
@@ -41,7 +42,7 @@ public:
 
     void show_context_table() {
         std::cout << "Active: ";
-        static_cast<C*>(activeContext)->show();
+        activeContext.show();
 
         for (const PCB& pcb : table.getAllProcesses()) {
             std::cout << "P" << pcb.id << ": ";
@@ -64,10 +65,10 @@ public:
 
 
         if (activeProcess) {
-            *static_cast<C*>(activeProcess->context) = *static_cast<C*>(activeContext);
+            table.saveContext(activeProcess, activeContext);
         } 
         if (next_process) {
-            *static_cast<C*>(activeContext) = *static_cast<C*>(next_process->context);
+            activeContext = table.loadContext(next_process);
         }
         activeProcess = next_process;
 
@@ -78,9 +79,7 @@ public:
         #endif
     }
     
-    Simulator(Scheduler& strategy) : scheduler(strategy) {
-        activeContext = new C();
-    }
+    Simulator(Scheduler& strategy) : scheduler(strategy) {}
 
     void simulate(std::vector<ProcessParams> processes) {
         table.clear();
@@ -102,7 +101,7 @@ public:
                 ProcessParams p = creationQueue.front();
                 if (p.creation_time > time)
                     break;
-                table.createProcess(p.creation_time, p.duration, p.priority, new C());
+                table.createProcess(p.creation_time, p.duration, p.priority);
                 creationQueue.pop();
             }
             // Envia os processos criados para o escalonador organizá-los
@@ -136,7 +135,7 @@ public:
 
             time++;
             activeProcess->executingTime++;
-            static_cast<C*>(activeContext)->tick(activeProcess->id);
+            activeContext.tick(activeProcess->id);
             result.push_back(activeProcess->id);
         }
     }
