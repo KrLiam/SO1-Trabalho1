@@ -2,21 +2,19 @@
 
 class Context {
     public:
-        void show() {
-            std::cout << "WTF HOWD U GET HERE" << std::endl;
-        };
-        void tick(int seed) {};
+        virtual ~Context() {};
+        virtual void show() = 0;
+        virtual void tick(int seed) = 0;
 };
 
 class ContextINE5412 : public Context {
-public:
     int size = 9;
     long int registers[6];
     long int stackPointer;
     long int programCounter;
     long int status;
 
-
+public:
     ContextINE5412() {
         for (int i = 0; i < 6; i++) {
             registers[i] = 0;
@@ -60,9 +58,10 @@ public:
 };
 
 class ContextMIPS : public Context {
-public:
-    static const int size = 32;
+    static const int size = 4;
     long int registers[size];
+
+public:
     void show() {
         for (int i = 0; i < size-1; i++) {
             std::cout << registers[i] << ", ";

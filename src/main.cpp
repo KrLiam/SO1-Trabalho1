@@ -39,7 +39,6 @@ int main(int argc, char const *argv[])
 		return 1;
 	}
 
-
 	Simulator<ContextMIPS> simulator(*scheduler);
 
 	simulator.simulate(all_processes);
@@ -47,4 +46,7 @@ int main(int argc, char const *argv[])
 	simulator.print_graph();
 
 	simulator.show_data();
+
+	delete scheduler;
+	return 0;
 }

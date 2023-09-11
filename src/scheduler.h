@@ -7,6 +7,7 @@
 
 class Scheduler {
 public:
+	virtual ~Scheduler() {};
     virtual void insert(PCB& pcb) = 0;
     virtual PCB* pick() = 0;
     virtual bool test(PCB& pcb) = 0;

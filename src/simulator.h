@@ -46,7 +46,7 @@ public:
 
         for (const PCB& pcb : table.getAllProcesses()) {
             std::cout << "P" << pcb.id << ": ";
-            static_cast<C*>(pcb.context)->show();
+            pcb.context->show();
         }
     }
 
@@ -131,9 +131,15 @@ public:
                 switch_context(scheduler.pick());
             }
 
-            if (!activeProcess && creationQueue.empty()) return;
-
             time++;
+            if (!activeProcess) {
+                if (creationQueue.empty()) {
+                    break;
+                } else {
+                    result.push_back(-1);
+                    continue;
+                }
+            }
             activeProcess->executingTime++;
             activeContext.tick(activeProcess->id);
             result.push_back(activeProcess->id);
