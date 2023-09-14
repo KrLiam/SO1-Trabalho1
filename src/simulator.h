@@ -18,6 +18,7 @@ class Simulator
     Scheduler& scheduler;
     PCB* activeProcess = NULL;
     std::vector<int> result;
+    int contextSwitchCounter;
     
     C activeContext;
 
@@ -52,9 +53,9 @@ public:
         } 
         if (next_process) {
             activeContext = table.loadContext(next_process);
+            contextSwitchCounter++;
         }
         activeProcess = next_process;
-
 
         #if DEBUG
         show_context_table();
@@ -65,6 +66,7 @@ public:
     Simulator(Scheduler& strategy) : scheduler(strategy) {}
 
     void simulate(std::vector<ProcessParams> processes) {
+        contextSwitchCounter = 0;
         table.clear();
         result.clear();
 
@@ -112,6 +114,7 @@ public:
             // escolhe um processo se nao há um processo ativo
             if (shouldSwitch || !activeProcess) {
                 switch_context(scheduler.pick());
+        
             }
 
             time++;
@@ -158,13 +161,6 @@ public:
     }
 
     void show_data() {
-        int context_changes = result.size() > 0;
-        for (std::size_t i = 1; i < result.size(); i++) {
-            if (result[i] != result[i-1]) {
-                context_changes++;
-            }
-        }
-        
         float average_wait_time = .0;
         for (PCB p : table.getAllProcesses()) {
             average_wait_time += p.endTime - p.startTime - p.duration;
@@ -178,9 +174,9 @@ public:
         }
         average_turnaround_time /= table.getProcessCount();
 
-        std::cout << "Tempo total de execução: " << result.size() << std::endl;
-        std::cout << "Número de mudanças de contexto: " << context_changes << std::endl;
-        std::cout << "Tempo médio de espera: " << average_wait_time << std::endl;
         std::cout << "Tempo médio de turnaround: " << average_turnaround_time << std::endl;
+        std::cout << "Tempo médio de espera: " << average_wait_time << std::endl;
+        std::cout << "Número de mudanças de contexto: " << contextSwitchCounter << std::endl;
+        std::cout << "Tempo total de execução: " << result.size() << std::endl;
     }
 };
