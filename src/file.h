@@ -43,9 +43,7 @@ public:
 	
 		int a, b, c;
 		
-		if (!myfile.is_open()) {
-			cout << "Arquivo não está aberto!" << endl;
-		}
+		if (!myfile.is_open()) return;
 		
 		while (myfile >> a >> b >> c) {
 			ProcessParams p(a, b, c);

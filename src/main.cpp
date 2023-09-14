@@ -7,12 +7,14 @@
 int main(int argc, char const *argv[])
 {
 	if (argc != 2) {
-		std::cout << "Usage: ./main <strategy>" << std::endl;
+		std::cout << "Usage: " << argv[0] << " <strategy: f|s|p|n|r>" << std::endl;
 		return 1;
 	}
 	File f;
 	f.read_file();
 	std::vector<ProcessParams> all_processes = f.get_processes();
+
+	if (!all_processes.size()) return 1;
 
 	char scheduler_name = argv[1][0];
 	
