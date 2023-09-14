@@ -23,23 +23,6 @@ class Simulator
 
 public:
 
-    void show_contexts(PCB* next_process) {
-        // Active Context
-        // Active Process context
-        std::cout << std::endl;
-        std::cout << "Active process: " << activeProcess->id << std::endl;
-        std::cout << "Active Process context: ";
-        static_cast<C*>(activeProcess->context)->show();
-        std::cout << "Active Context: ";
-        activeContext.show();
-        if (next_process) {
-            std::cout << "Next process: " << next_process->id << std::endl;
-            std::cout << "Next Process context: ";
-            static_cast<C*>(next_process->context)->show();
-        }
-        std::cout << std::endl;
-    }
-
     void show_context_table() {
         std::cout << "Active: ";
         activeContext.show();
