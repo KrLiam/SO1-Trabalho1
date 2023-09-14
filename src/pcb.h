@@ -1,7 +1,8 @@
 #pragma once
 
-#include "state.h"
 #include "context.h"
+
+enum ProcessState {pNew, pReady, pExecuting, pFinished};
 
 struct PCB
 {
