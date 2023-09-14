@@ -117,10 +117,13 @@ public:
 };
 
 class SchedulerRoundRobin : public Scheduler {
+	int quantum;
+	int counter = 0;
 	std::queue<PCB*> queue;
-	int quantum = 0;
 
 public:
+
+	SchedulerRoundRobin(int quantum) : quantum(quantum) {}
 
 	void insert(PCB& pcb) {
 		queue.push(&pcb);
@@ -129,15 +132,15 @@ public:
 	PCB* pick() {
 		if (!queue.size()) return NULL;
 
-		quantum = 0;
+		counter = 0;
 		PCB* pcb = queue.front();
         queue.pop();
         return pcb;
 	}
 
 	bool test(PCB&) {
-		quantum++;
+		counter++;
 		if (!queue.size()) return false;
-		return quantum >= 2;
+		return counter >= quantum;
 	}
 };

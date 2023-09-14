@@ -34,7 +34,7 @@ int main(int argc, char const *argv[])
 		scheduler = new SchedulerNonPreemptivePriority();
 		break;
 	case 'r':
-		scheduler = new SchedulerRoundRobin();
+		scheduler = new SchedulerRoundRobin(2);
 		break;
 	default:
 		std::cout << "Invalid scheduler strategy" << std::endl;
