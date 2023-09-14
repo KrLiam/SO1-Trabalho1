@@ -137,6 +137,7 @@ public:
 
 	bool test(PCB&) {
 		quantum++;
+		if (!queue.size()) return false;
 		return quantum >= 2;
 	}
 };
