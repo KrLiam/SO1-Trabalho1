@@ -55,6 +55,16 @@ public:
             }
         }
     }
+
+    constexpr ContextINE5412& operator=(const ContextINE5412& context) {
+        for (int i = 0; i < size; i++) {
+            registers[i] = context.registers[i];
+        }
+        stackPointer = context.stackPointer;
+        programCounter = context.programCounter;
+        status = context.status;
+        return *this;
+    }
 };
 
 class ContextMIPS : public Context {
@@ -90,5 +100,12 @@ public:
         for (int i = 0; i < size; i++) {
             registers[i] = context.registers[i];
         }
+    }
+
+    constexpr ContextMIPS& operator=(const ContextMIPS& context) {
+        for (int i = 0; i < size; i++) {
+            registers[i] = context.registers[i];
+        }
+        return *this;
     }
 };
