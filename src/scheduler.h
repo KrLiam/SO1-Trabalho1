@@ -29,7 +29,7 @@ public:
         return pcb;
 	}
 
-	bool test(PCB& pcb) {
+	bool test(PCB&) {
 		return false; // never preempts
 	}
 };
@@ -111,7 +111,7 @@ public:
 		return pcb;
 	}
 
-	bool test(PCB& pcb) {
+	bool test(PCB&) {
 		return false;
 	}
 };
@@ -135,7 +135,7 @@ public:
         return pcb;
 	}
 
-	bool test(PCB& pcb) {
+	bool test(PCB&) {
 		quantum++;
 		return quantum >= 2;
 	}

@@ -33,7 +33,7 @@ class File {
 
 public:
 	File() {
-		myfile.open("../entrada.txt");
+		myfile.open("entrada.txt");
 		if (!myfile.is_open()) {
 			cout << "Erro ao abrir o arquivo!\n";
 		}
@@ -58,7 +58,7 @@ public:
 	void print_processes_params() {
 		vector<ProcessParams>::iterator iter = processes.begin();
 
-		for(iter; iter < processes.end(); iter++) {
+		for(; iter < processes.end(); iter++) {
 			ProcessParams p = *iter;
 			cout << p;
 		}

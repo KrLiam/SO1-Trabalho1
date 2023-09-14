@@ -179,7 +179,7 @@ public:
 
     void show_data() {
         int context_changes = result.size() > 0;
-        for (int i = 1; i < result.size(); i++) {
+        for (std::size_t i = 1; i < result.size(); i++) {
             if (result[i] != result[i-1]) {
                 context_changes++;
             }
