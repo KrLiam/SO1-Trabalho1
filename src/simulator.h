@@ -116,12 +116,9 @@ public:
 
             time++;
             if (!activeProcess) {
-                if (creationQueue.empty()) {
-                    break;
-                } else {
-                    result.push_back(-1);
-                    continue;
-                }
+                if (creationQueue.empty()) break;
+                result.push_back(-1);
+                continue;
             }
             activeProcess->executingTime++;
             activeContext.tick(activeProcess->id);
