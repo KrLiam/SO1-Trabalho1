@@ -36,7 +36,7 @@ public:
 
 class ContextMIPS : public Context {
     static const int size = 4;
-    long int registers[size];
+    int registers[size];
 
 public:
     ContextMIPS();
