@@ -11,5 +11,12 @@ mkdir build && cmake -B build
 
 ```sh
 make -C build
-./build/escalonador
+./build/escalonador <option>
 ```
+
+As opções para o escalonador são
+- f: First Come First Served
+- s: Shortest Job First
+- p: Fila de prioridade com preempção
+- n: Fila de prioridade sem preempção
+- r: Round-robin
