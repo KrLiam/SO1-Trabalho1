@@ -30,7 +30,7 @@ public:
 	}
 
 	bool test(PCB&) {
-		return false; // never preempts
+		return false; // essa estrategia nao faz preempcao
 	}
 };
 
@@ -41,6 +41,7 @@ class SchedulerSJF : public Scheduler {
 			return a->duration > b->duration;
 		}
 	};
+	// A estrutura priority queue permite a insercao ordenada de elementos pela duracao
 	std::priority_queue<PCB*, std::vector<PCB*>, CompareDuration> queue;
 
 public:
@@ -69,6 +70,7 @@ class SchedulerPreemptivePriority : public Scheduler {
 			return a->priority < b->priority;
 		}
 	};
+	// A estrutura priority queue permite a insercao ordenada de elementos pela prioridade
 	std::priority_queue<PCB*, std::vector<PCB*>, ComparePriority> queue;
 
 public:
@@ -97,6 +99,7 @@ class SchedulerNonPreemptivePriority : public Scheduler {
 			return a->priority < b->priority;
 		}
 	};
+	// A estrutura priority queue permite a insercao ordenada de elementos pela prioridade
 	std::priority_queue<PCB*, std::vector<PCB*>, ComparePriority> queue;
 
 public:
@@ -112,7 +115,7 @@ public:
 	}
 
 	bool test(PCB&) {
-		return false;
+		return false;  // essa estrategia nao faz preempcao
 	}
 };
 
@@ -131,8 +134,7 @@ public:
 
 	PCB* pick() {
 		if (!queue.size()) return NULL;
-
-		counter = 0;
+		counter = 0;  // Reinicia o contador durante uma preempcao ou quando um processo termina
 		PCB* pcb = queue.front();
         queue.pop();
         return pcb;
@@ -140,7 +142,7 @@ public:
 
 	bool test(PCB&) {
 		counter++;
-		if (!queue.size()) return false;
+		if (!queue.size()) return false;  // Caso nao haja processos na fila de pronto, nao faz preempcao mesmo que o quantum tenha esgotado
 		return counter >= quantum;
 	}
 };

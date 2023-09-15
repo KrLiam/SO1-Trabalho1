@@ -18,6 +18,7 @@ int main(int argc, char const *argv[])
 
 	char scheduler_name = argv[1][0];
 	
+	// Instancia uma subclasse de Scheduler de acordo com o argumento passado
 	Scheduler* scheduler;
 	switch (scheduler_name)
 	{
@@ -41,12 +42,11 @@ int main(int argc, char const *argv[])
 		return 1;
 	}
 
-	Simulator<ContextMIPS> simulator(*scheduler);
+	Simulator<ContextINE5412> simulator(*scheduler);
 
-	simulator.simulate(all_processes);
+	simulator.simulate(all_processes);  // Armazena o resultado internamente para posteriormente imprimir o grafico
 
 	simulator.print_graph();
-
 	simulator.show_data();
 
 	delete scheduler;

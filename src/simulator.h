@@ -66,22 +66,23 @@ public:
     Simulator(Scheduler& strategy) : scheduler(strategy) {}
 
     void simulate(std::vector<ProcessParams> processes) {
+        // Garante que a simulação comece do zero
+        int time = 0;
         contextSwitchCounter = 0;
         table.clear();
         result.clear();
 
-        // preparar fila de processos
+        // preparar fila de criacao de processos
         // certifica que estao na ordem de criacao adequada
         std::sort(processes.begin(), processes.end(), [](ProcessParams a, ProcessParams b) {
             return a.creation_time < b.creation_time;
         });
-        std::queue<ProcessParams>  creationQueue;
+        std::queue<ProcessParams> creationQueue;
         for (ProcessParams p : processes) creationQueue.push(p);
-        int time = 0;
 
-        // Simulação, cada iteração é um segundo
+        // Simulação, cada iteração é uma unidade de tempo
         while (1) {
-            // Checa quais processos devem ser criados no segundo atual
+            // Checa quais processos devem ser criados no instante atual
             while (!creationQueue.empty()) {
                 ProcessParams p = creationQueue.front();
                 if (p.creation_time > time)
@@ -89,20 +90,21 @@ public:
                 table.createProcess(p.creation_time, p.duration, p.priority);
                 creationQueue.pop();
             }
-            // Envia os processos criados para o escalonador organizá-los
+            // Envia os processos criados para o escalonador organiza-los
             for (PCB* process : table.getByState(pNew)) {
                 table.changeState(process, pReady);
                 scheduler.insert(*process);
             }
 
+            // Analisa se o processo ativo deve ser trocado
             bool shouldSwitch = false;
             if (activeProcess) {
-                // Testa se o processo encerrou
+                // Testa se o processo atual encerrou
                 if (activeProcess->finished()) {
                     table.changeState(activeProcess, pFinished);
                     table.getProcess(activeProcess->id).endTime = time;
                     shouldSwitch = true;
-                } else if (scheduler.test(*activeProcess)) {
+                } else if (scheduler.test(*activeProcess)) {  // Testa se o processo atual deve ser preemptado
                     // devolve processo para a estratégia
                     table.changeState(activeProcess, pReady);
                     scheduler.insert(*activeProcess);
@@ -111,17 +113,18 @@ public:
 
             } 
 
-            // escolhe um processo se nao há um processo ativo
+            // escolhe o proximo processo a ser executado e troca o contexto
             if (shouldSwitch || !activeProcess) {
                 switch_context(scheduler.pick());
-        
+                if (activeProcess) table.changeState(activeProcess, pExecuting);
             }
 
+            // Informacoes e simulacao do instante e processo atual
             time++;
             if (!activeProcess) {
-                if (creationQueue.empty()) break;
+                if (creationQueue.empty()) break;  // Se nao ha processos ativos e nao ha processos a serem criados, a simulacao termina
                 result.push_back(-1);
-                continue;
+                continue;  // Se nao ha processos ativos, mas ha processos a serem criados, a simulacao continua, sem simular a execucao de nenhum processo
             }
             activeProcess->executingTime++;
             activeContext.tick(activeProcess->id);
