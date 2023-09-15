@@ -56,10 +56,13 @@ public:
 		return pcb;
 	}
 
-	bool test(PCB& pcb) {
-		if (!queue.size()) return false;
-		PCB* potential_next_process = queue.top();
-		return pcb.duration > potential_next_process->duration;
+	bool test(PCB&) {
+		return false;  // essa estrategia nao faz preempcao
+
+		// Caso queira fazer preempcao, descomente as linhas abaixo
+		// if (!queue.size()) return false;
+		// PCB* potential_next_process = queue.top();
+		// return pcb.duration > potential_next_process->duration;
 	}
 };
 
