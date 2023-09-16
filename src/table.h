@@ -31,13 +31,15 @@ public:
         clear();
     }
 
-    void createProcess(int creationTime, int duration, int priority) {
-        if (processes.size() >= MAX_PROCESS_COUNT) return;
+    int createProcess(int creationTime, int duration, int priority) {
+        if (processes.size() >= MAX_PROCESS_COUNT) return -1;
 
         int id = processes.size();
         C* context = new C();
         PCB& process = processes.emplace_back(id, creationTime, duration, priority, context);
         changeState(&process, pNew);
+
+        return id;
     }
 
     PCB& getProcess(int id) {

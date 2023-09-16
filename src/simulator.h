@@ -87,7 +87,16 @@ public:
                 ProcessParams p = creationQueue.front();
                 if (p.creation_time > time)
                     break;
-                table.createProcess(p.creation_time, p.duration, p.priority);
+
+                int id = table.createProcess(p.creation_time, p.duration, p.priority);
+                if (id >= 0) {
+                    PCB& process = table.getProcess(id);
+                    if (process.finished()) {
+                        table.changeState(&process, pFinished);
+                        process.endTime = time;
+                    }
+                }
+
                 creationQueue.pop();
             }
             // Envia os processos criados para o escalonador organiza-los
@@ -102,7 +111,7 @@ public:
                 // Testa se o processo atual encerrou
                 if (activeProcess->finished()) {
                     table.changeState(activeProcess, pFinished);
-                    table.getProcess(activeProcess->id).endTime = time;
+                    activeProcess->endTime = time;
                     shouldSwitch = true;
                 } else if (scheduler.test(*activeProcess)) {  // Testa se o processo atual deve ser preemptado
                     // devolve processo para a estratégia
@@ -110,7 +119,6 @@ public:
                     scheduler.insert(*activeProcess);
                     shouldSwitch = true;
                 }
-
             } 
 
             // escolhe o proximo processo a ser executado e troca o contexto
