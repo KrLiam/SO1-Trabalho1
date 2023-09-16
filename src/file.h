@@ -13,11 +13,13 @@ public:
 	int creation_time;
 	int duration; //seconds
 	int priority;
+	int index;
 
-	ProcessParams(int c, int d, int p) { 
+	ProcessParams(int c, int d, int p, int i) { 
 		creation_time = c;
 		duration = d;
 		priority = p;
+		index = i;
 	}
 
 	friend ostream &operator<<(ostream& os, const ProcessParams& p) {
@@ -40,13 +42,15 @@ public:
 	}
 	
 	void read_file() {
+
+		int index = 0;
 	
 		int a, b, c;
 		
 		if (!myfile.is_open()) return;
 		
 		while (myfile >> a >> b >> c) {
-			ProcessParams p(a, b, c);
+			ProcessParams p(a, b, c, index++);
 			processes.push_back(p);
 		}
 

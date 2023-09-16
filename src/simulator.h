@@ -5,6 +5,7 @@
 #include <queue>
 #include <algorithm>
 #include <iomanip>
+#include <unordered_map>
 
 #include "file.h"
 #include "pcb.h"
@@ -21,6 +22,8 @@ class Simulator
     int contextSwitchCounter;
     
     C activeContext;
+
+    std::unordered_map<int, int> process_index_to_pid_map;
 
 public:
 
@@ -95,6 +98,7 @@ public:
                         table.changeState(&process, pFinished);
                         process.endTime = time;
                     }
+                    process_index_to_pid_map.emplace(p.index, id);
                 }
 
                 creationQueue.pop();
@@ -155,7 +159,9 @@ public:
         std::cout << std::endl;
         for(int timestamp = 0; timestamp < total_time; timestamp++) {
             std::cout << left << std::setw(6) << std::to_string(timestamp) + "-" + std::to_string(timestamp+1);
-            for (int pid = 0; pid < total_processes; pid++) {
+            for (int i = 0; i < total_processes; i++) {
+                if (process_index_to_pid_map.count(i) == 0) continue;
+                int pid = process_index_to_pid_map.at(i);
                 
                 PCB& process = table.getProcess(pid);
                 bool process_is_running_or_waiting = (process.startTime <= timestamp) && (process.endTime > timestamp);
@@ -172,18 +178,24 @@ public:
     }
 
     void show_data() {
+        int total_processes = table.getProcessCount();
+
         float average_wait_time = .0;
         for (PCB p : table.getAllProcesses()) {
             average_wait_time += p.endTime - p.startTime - p.duration;
         }
-        average_wait_time /= table.getProcessCount();
+        average_wait_time /= total_processes;
         
         float average_turnaround_time = .0;
-        for (PCB p : table.getAllProcesses()) {
-            std::cout << "Processo " << p.id << " - Turnaround time: " << p.endTime - p.startTime << std::endl;
+        for (int i = 0; i < total_processes; i++) {
+            if (process_index_to_pid_map.count(i) == 0) continue;
+
+            int pid = process_index_to_pid_map.at(i);
+            PCB& p = table.getProcess(pid);
+            std::cout << "Processo " << i << " - Turnaround time: " << p.endTime - p.startTime << std::endl;
             average_turnaround_time += p.endTime - p.startTime;
         }
-        average_turnaround_time /= table.getProcessCount();
+        average_turnaround_time /= total_processes;
 
         std::cout << "Tempo médio de turnaround: " << average_turnaround_time << std::endl;
         std::cout << "Tempo médio de espera: " << average_wait_time << std::endl;
