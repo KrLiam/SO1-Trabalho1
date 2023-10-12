@@ -28,15 +28,7 @@ int main(int argc, char const *argv[])
 
     int frame_amount = std::atoi(argv[1]);
 
-    std::vector<int> input = read_input();
+    Simulator simulator(frame_amount);
 
-    for (int x : input) {
-        std::cout << x << " ";
-    }
-    std::cout << std::endl; 
-
-    Simulator simulator;
-    simulator.simulate(input);
-
-    std::cout << "frames: " << frame_amount << std::endl;
+    simulator.simulate();
 }

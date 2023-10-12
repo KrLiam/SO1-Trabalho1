@@ -1,16 +1,24 @@
 
 #include <vector>
+#include <set>
 
+#include "substitution_algorithm.h"
 
-struct PageEntry {
-    unsigned int address;
-    bool present;
+struct SimulationEntry {
+    SubstitutionAlgorithm& algorithm;
+    std::set<int> present_pages;
+
+    SimulationEntry(SubstitutionAlgorithm& algorithm);
 };
 
 class Simulator {
-    std::vector<PageEntry> page_table;
+    int frame_amount;
+    std::set<int> present_pages;
+    std::vector<SubstitutionAlgorithm*> algorithms;
 public:
-    Simulator();
+    Simulator(int frame_amount);
 
-    void simulate(const std::vector<int>& page_accesses);
+    void simulate();
+
+    inline void access(SimulationEntry& entry, int page);
 };
