@@ -28,8 +28,8 @@ int main(int argc, char const *argv[])
     int frame_amount = std::atoi(argv[1]);
 
     Simulator simulator(frame_amount);
-    FIFO fifo(frame_amount);
-    LRU lru(frame_amount);
+    FIFO fifo;
+    LRU lru;
     simulator.add_algorithm(fifo);
     simulator.add_algorithm(lru);
 

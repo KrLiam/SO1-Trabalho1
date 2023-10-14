@@ -7,6 +7,7 @@
 Simulator::Simulator(int frame_amount) : frame_amount(frame_amount) {}
 
 void Simulator::add_algorithm(SubstitutionAlgorithm& algorithm) {
+    algorithm.set_frame_amount(frame_amount);
     algorithms.push_back(&algorithm);
 }
 

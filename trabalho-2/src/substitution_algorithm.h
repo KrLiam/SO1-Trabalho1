@@ -11,7 +11,11 @@ protected:
     unsigned int frame_amount;
 public:
 
-    SubstitutionAlgorithm(unsigned int frame_amount) : frame_amount(frame_amount) {}
+    virtual ~SubstitutionAlgorithm() {};
+
+    void set_frame_amount(unsigned int frame_amount) {
+        this->frame_amount = frame_amount;
+    }
 
     virtual const char* name() = 0;
 
@@ -34,8 +38,6 @@ class FIFO : public SubstitutionAlgorithm {
     std::queue<int> queue;
 public:
 
-    FIFO(unsigned int frame_amount) : SubstitutionAlgorithm(frame_amount) {}
-
     const char* name() { return "FIFO"; }
 
     virtual int replace(int page) {
@@ -54,7 +56,6 @@ public:
 class LRU : public SubstitutionAlgorithm {
     std::list<int> list;
 public:
-    LRU(unsigned int frame_amount) : SubstitutionAlgorithm(frame_amount) {}
 
     const char* name() { return "LRU"; }
 
