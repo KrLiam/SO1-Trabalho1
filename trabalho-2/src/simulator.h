@@ -4,23 +4,16 @@
 
 #include "substitution_algorithm.h"
 
-struct SimulationEntry {
-    SubstitutionAlgorithm& algorithm;
-    std::unordered_set<int> present_pages;
-    unsigned int faults = 0;
-
-    SimulationEntry(SubstitutionAlgorithm& algorithm);
-};
 
 class Simulator {
     int frame_amount;
     std::vector<SubstitutionAlgorithm*> algorithms;
+    std::unordered_set<int> present_pages;
+    unsigned int faults = 0;
 public:
     Simulator(int frame_amount);
 
     void add_algorithm(SubstitutionAlgorithm& algorithm);
 
-    void simulate();
-
-    inline void access(SimulationEntry& entry, int page);
+    void simulate(std::vector<int>& accesses);
 };
