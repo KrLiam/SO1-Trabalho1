@@ -9,7 +9,7 @@ std::vector<int> read_input() {
     std::vector<int> result;
 
     int value;
-    while (true) {
+    while (!feof(stdin)) {
         std::cin >> value;
         if (value < 0) break;
         result.push_back(value);
@@ -29,6 +29,8 @@ int main(int argc, char const *argv[])
     int frame_amount = std::atoi(argv[1]);
 
     Simulator simulator(frame_amount);
+    FIFO fifo(frame_amount);
+    simulator.add_algorithm(fifo);
 
     simulator.simulate();
 }
