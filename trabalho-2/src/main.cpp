@@ -25,7 +25,7 @@ int main(int argc, char const *argv[])
 		return 1;
 	}
 
-    int frame_amount = std::atoi(argv[1]);
+    unsigned int frame_amount = std::atoi(argv[1]);
 
     Simulator simulator(frame_amount);
     FIFO fifo;

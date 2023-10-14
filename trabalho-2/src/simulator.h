@@ -6,12 +6,12 @@
 
 
 class Simulator {
-    int frame_amount;
+    unsigned int frame_amount;
     std::vector<SubstitutionAlgorithm*> algorithms;
     std::unordered_set<int> present_pages;
     unsigned int faults = 0;
 public:
-    Simulator(int frame_amount);
+    Simulator(unsigned int frame_amount);
 
     void add_algorithm(SubstitutionAlgorithm& algorithm);
 

@@ -4,7 +4,7 @@
 #include "substitution_algorithm.h"
 
 
-Simulator::Simulator(int frame_amount) : frame_amount(frame_amount) {}
+Simulator::Simulator(unsigned int frame_amount) : frame_amount(frame_amount) {}
 
 void Simulator::add_algorithm(SubstitutionAlgorithm& algorithm) {
     algorithm.set_frame_amount(frame_amount);
@@ -13,10 +13,9 @@ void Simulator::add_algorithm(SubstitutionAlgorithm& algorithm) {
 
 void Simulator::optimal(std::vector<int>& accesses) {
     present_pages.clear();
+    // std::unordered_set<int> can_remove;
+
     faults = 0;
-    int count;
-    int acc;
-    int current_total = 0;
     int page_to_remove;
 
     for (std::size_t i = 0; i < accesses.size(); i++) {
@@ -26,33 +25,45 @@ void Simulator::optimal(std::vector<int>& accesses) {
             // std::cout << "page hit " << page << std::endl;
             continue;
         }
-        // Página ausente mas há molduras livres
+
+        // Pagina ausente
+        faults++;
         // std::cout << "page fault " << page;
-        int size = present_pages.size();
-        if (size < frame_amount) {
+
+        // Há molduras livress
+        if (present_pages.size() < frame_amount) {
             present_pages.insert(page);
-            current_total += page;
             // std::cout << std::endl;
             continue;
         }
-        // Página ausente e não há molduras livres
-        faults++;
-        count = 0;
-        acc = 0;
+
+        // Não há molduras livres
+
+        std::unordered_set<int> can_remove(present_pages);
+        // recriar o unordered_set a cada iteração leva o msm tempo q
+        // manter uma instancia fixa e fazer essa gambiarra ai embaixo
+        // can_remove.clear();
+        // can_remove.insert(present_pages.begin(), present_pages.end());
+
         for (std::size_t j = i+1; j < accesses.size(); j++) {
             int look_ahead = accesses[j];
-            if (present_pages.count(look_ahead)) {
-                count++;
-                acc += look_ahead;
-                if (count == frame_amount - 1) break;
+            if (can_remove.count(look_ahead)) {
+                can_remove.erase(look_ahead);
+
+                if (can_remove.size() == 1) break;
             }
         }
-        page_to_remove = current_total - acc;
-        // std::cout << ", replaced page " << page_to_remove << std::endl;
+
+        page_to_remove = *can_remove.begin();
+
+        // std::cout << ", replaced page " << page_to_remove << ", frames:";
         present_pages.erase(page_to_remove);
         present_pages.insert(page);
-        current_total = acc + page;
 
+        // for (int present : present_pages) {
+        //     std::cout << " " << present;
+        // }
+        // std::cout << std::endl;
     }
     std::cout << "Ótimo: " << faults << " PFs" << std::endl;
 }
