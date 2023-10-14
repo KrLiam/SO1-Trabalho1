@@ -9,8 +9,7 @@ std::vector<int> read_input() {
     std::vector<int> result;
 
     int value;
-    while (!feof(stdin)) {
-        std::cin >> value;
+    while (std::cin >> value) {
         if (value < 0) break;
         result.push_back(value);
     }
