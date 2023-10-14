@@ -30,7 +30,9 @@ int main(int argc, char const *argv[])
 
     Simulator simulator(frame_amount);
     FIFO fifo(frame_amount);
+    LRU lru(frame_amount);
     simulator.add_algorithm(fifo);
+    simulator.add_algorithm(lru);
 
     std::vector<int> input = read_input();
     simulator.simulate(input);

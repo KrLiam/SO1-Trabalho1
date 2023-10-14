@@ -2,6 +2,8 @@
 
 #include <vector>
 #include <queue>
+#include <list>
+#include <algorithm>
 
 
 class SubstitutionAlgorithm {
@@ -44,6 +46,31 @@ public:
 
         int page_to_remove = queue.front();
         queue.pop();
+        return page_to_remove;
+    }
+};
+
+
+class LRU : public SubstitutionAlgorithm {
+    std::list<int> list;
+public:
+    LRU(unsigned int frame_amount) : SubstitutionAlgorithm(frame_amount) {}
+
+    const char* name() { return "LRU"; }
+
+    void accessed(int page) {
+        auto it = std::find(list.begin(), list.end(), page);
+        list.erase(it);
+        list.push_front(page);
+    }
+
+    int replace(int page) {
+        list.push_front(page);
+        
+        if (list.size() <= frame_amount) return -1;
+
+        int page_to_remove = list.back();
+        list.pop_back();
         return page_to_remove;
     }
 };
