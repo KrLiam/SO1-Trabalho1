@@ -16,4 +16,6 @@ public:
     void add_algorithm(SubstitutionAlgorithm& algorithm);
 
     void simulate(std::vector<int>& accesses);
+
+    void optimal(std::vector<int>& accesses);
 };
