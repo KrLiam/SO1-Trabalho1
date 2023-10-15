@@ -1,4 +1,7 @@
 #include <iostream>
+#include <unordered_map>
+#include <set>
+#include <list>
 
 #include "simulator.h"
 #include "substitution_algorithm.h"
@@ -12,25 +15,46 @@ void Simulator::add_algorithm(SubstitutionAlgorithm& algorithm) {
 }
 
 void Simulator::optimal(std::vector<int>& accesses) {
+    int max_i = accesses.size();
+
+    std::unordered_map<int, std::list<int>> uses;
+    for (int i = max_i - 1; i >= 0; i--) {
+        int page = accesses[i];
+
+        if (!uses.count(page)) {
+            uses.emplace(page, std::list<int>({max_i}));
+        }
+        uses.at(page).push_front(i);
+    }
+
     present_pages.clear();
-    // std::unordered_set<int> can_remove;
 
     faults = 0;
-    int page_to_remove;
+    int furthest_page = -1;
+    int furthest_page_i = -1;
 
     for (std::size_t i = 0; i < accesses.size(); i++) {
         int page = accesses[i];
+        std::list<int>& page_uses = uses.at(page);
+
+        page_uses.pop_front();
+        int page_next_i = page_uses.front();
+
+        int prev_furthest_page = furthest_page;
+        if (page_next_i > furthest_page_i) {
+            furthest_page_i = page_next_i;
+            furthest_page = page;
+        }
+
         // Página presente
         if (present_pages.count(page)){
-            // std::cout << "page hit " << page << std::endl;
             continue;
         }
 
         // Pagina ausente
         faults++;
-        // std::cout << "page fault " << page;
 
-        // Há molduras livress
+        // Há molduras livres
         if (present_pages.size() < frame_amount) {
             present_pages.insert(page);
             // std::cout << std::endl;
@@ -38,35 +62,25 @@ void Simulator::optimal(std::vector<int>& accesses) {
         }
 
         // Não há molduras livres
-
-        std::unordered_set<int> can_remove(present_pages);
-        // recriar o unordered_set a cada iteração leva o msm tempo q
-        // manter uma instancia fixa e fazer essa gambiarra ai embaixo
-        // can_remove.clear();
-        // can_remove.insert(present_pages.begin(), present_pages.end());
-
-        for (std::size_t j = i+1; j < accesses.size(); j++) {
-            int look_ahead = accesses[j];
-            if (can_remove.count(look_ahead)) {
-                can_remove.erase(look_ahead);
-
-                if (can_remove.size() == 1) break;
-            }
-        }
-
-        page_to_remove = *can_remove.begin();
-
-        // std::cout << ", replaced page " << page_to_remove << ", frames:";
-        present_pages.erase(page_to_remove);
+        present_pages.erase(prev_furthest_page);
         present_pages.insert(page);
 
-        // for (int present : present_pages) {
-        //     std::cout << " " << present;
-        // }
-        // std::cout << std::endl;
+        if (prev_furthest_page == furthest_page) {
+            furthest_page_i = -1;
+            for (int present_page : present_pages) {
+                std::list<int>& present_uses = uses.at(present_page);
+                int present_i = present_uses.front();
+                if (present_i > furthest_page_i) {
+                    furthest_page_i = present_i;
+                    furthest_page = present_page;
+                }
+            }
+        }
     }
+
     std::cout << "Ótimo: " << faults << " PFs" << std::endl;
 }
+
 
 void Simulator::simulate(std::vector<int>& accesses) {
     std::cout << frame_amount << " quadros" << std::endl
