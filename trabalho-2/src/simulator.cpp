@@ -86,8 +86,6 @@ void Simulator::simulate(std::vector<int>& accesses) {
     std::cout << frame_amount << " quadros" << std::endl
               << accesses.size() << " refs " << std::endl;
 
-    // Chamar algoritmo ótimo
-    optimal(accesses);
     for (SubstitutionAlgorithm* algorithm : algorithms) {
         present_pages.clear();
         faults = 0;
@@ -112,5 +110,8 @@ void Simulator::simulate(std::vector<int>& accesses) {
         }
 
         std::cout << algorithm->name() << ": " << faults << " PFs" << std::endl;
-    }    
+    
+    }
+    // Chamar algoritmo ótimo
+    optimal(accesses);
 }
