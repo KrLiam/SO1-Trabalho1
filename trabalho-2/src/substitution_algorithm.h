@@ -5,6 +5,7 @@
 #include <list>
 #include <algorithm>
 
+typedef int page_t;
 
 class SubstitutionAlgorithm {
 protected:
@@ -22,31 +23,31 @@ public:
     /**
      * Chamado quando uma página é acessada sem page fault.
     */
-    virtual void accessed(int) {};
+    virtual void accessed(page_t) {};
 
     /**
      * Recebe o id da página que gerou o page fault.
      * Retorna a página que deve ser substituída.
     */ 
-    virtual int replace(int page) = 0;
+    virtual page_t replace(page_t page) = 0;
 
-    void simulate(std::vector<int>) {};
+    void simulate(std::vector<page_t>) {};
 };
 
 
 class FIFO : public SubstitutionAlgorithm {
-    std::queue<int> queue;
+    std::queue<page_t> queue;
 public:
 
     const char* name() { return "FIFO"; }
 
-    virtual int replace(int page) {
+    virtual page_t replace(page_t page) {
         queue.push(page);
 
         // se ainda há molduras livres, não retira nenhuma página
         if (queue.size() <= frame_amount) return -1;
 
-        int page_to_remove = queue.front();
+        page_t page_to_remove = queue.front();
         queue.pop();
         return page_to_remove;
     }
@@ -54,23 +55,23 @@ public:
 
 
 class LRU : public SubstitutionAlgorithm {
-    std::list<int> list;
+    std::list<page_t> list;
 public:
 
     const char* name() { return "LRU"; }
 
-    void accessed(int page) {
+    void accessed(page_t page) {
         auto it = std::find(list.begin(), list.end(), page);
         list.erase(it);
         list.push_front(page);
     }
 
-    int replace(int page) {
+    page_t replace(page_t page) {
         list.push_front(page);
         
         if (list.size() <= frame_amount) return -1;
 
-        int page_to_remove = list.back();
+        page_t page_to_remove = list.back();
         list.pop_back();
         return page_to_remove;
     }

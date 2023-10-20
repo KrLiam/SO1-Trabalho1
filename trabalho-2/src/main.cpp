@@ -5,10 +5,10 @@
 
 #include "simulator.h"
 
-std::vector<int> read_input() {
-    std::vector<int> result;
+std::vector<page_t> read_input() {
+    std::vector<page_t> result;
 
-    int value;
+    page_t value;
     while (std::cin >> value) {
         if (value < 0) break;
         result.push_back(value);
@@ -33,6 +33,6 @@ int main(int argc, char const *argv[])
     simulator.add_algorithm(fifo);
     simulator.add_algorithm(lru);
 
-    std::vector<int> input = read_input();
+    std::vector<page_t> input = read_input();
     simulator.simulate(input);
 }
