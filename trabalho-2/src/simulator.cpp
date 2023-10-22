@@ -14,7 +14,7 @@ void Simulator::add_algorithm(SubstitutionAlgorithm& algorithm) {
     algorithms.push_back(&algorithm);
 }
 
-void Simulator::optimal(std::vector<page_t>& accesses) {
+int Simulator::optimal(std::vector<page_t>& accesses) {
     int max_i = accesses.size();
 
     std::unordered_map<page_t, std::list<int>> uses;
@@ -77,15 +77,15 @@ void Simulator::optimal(std::vector<page_t>& accesses) {
             }
         }
     }
-
-    std::cout << "Ótimo: " << faults << " PFs" << std::endl;
+    // std::cout << "Ótimo: " << faults << " PFs" << std::endl;
+    return faults;
 }
 
 
-void Simulator::simulate(std::vector<page_t>& accesses) {
-    std::cout << frame_amount << " quadros" << std::endl
-              << accesses.size() << " refs " << std::endl;
-
+std::vector<int> Simulator::simulate(std::vector<page_t>& accesses) {
+    // std::cout << frame_amount << " quadros" << std::endl
+            //   << accesses.size() << " refs " << std::endl;
+    std::vector<int> faults_vector;
     for (SubstitutionAlgorithm* algorithm : algorithms) {
         present_pages.clear();
         faults = 0;
@@ -108,10 +108,10 @@ void Simulator::simulate(std::vector<page_t>& accesses) {
                 present_pages.insert(page);
             }
         }
-
-        std::cout << algorithm->name() << ": " << faults << " PFs" << std::endl;
-    
+        faults_vector.push_back(faults);
+        // std::cout << algorithm->name() << ": " << faults << " PFs" << std::endl;
     }
     // Chamar algoritmo ótimo
-    optimal(accesses);
+    faults_vector.push_back(optimal(accesses));
+    return faults_vector;
 }

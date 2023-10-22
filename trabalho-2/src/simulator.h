@@ -15,7 +15,7 @@ public:
 
     void add_algorithm(SubstitutionAlgorithm& algorithm);
 
-    void simulate(std::vector<page_t>& accesses);
+    std::vector<int> simulate(std::vector<page_t>& accesses);
 
-    void optimal(std::vector<page_t>& accesses);
+    int optimal(std::vector<page_t>& accesses);
 };
