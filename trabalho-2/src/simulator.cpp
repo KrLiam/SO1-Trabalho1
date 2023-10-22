@@ -7,6 +7,18 @@
 #include "substitution_algorithm.h"
 
 
+SimulationEntry::SimulationEntry(const std::string name, unsigned int faults)
+    : name(name),
+      faults(faults) {}
+
+SimulationResult::SimulationResult(
+    std::vector<SimulationEntry> entries,
+    const std::vector<page_t>& accesses,
+    unsigned int frame_amount
+) : entries(entries),
+    accesses(accesses),
+    frame_amount(frame_amount) {}
+
 Simulator::Simulator(unsigned int frame_amount) : frame_amount(frame_amount) {}
 
 void Simulator::add_algorithm(SubstitutionAlgorithm& algorithm) {
@@ -14,7 +26,7 @@ void Simulator::add_algorithm(SubstitutionAlgorithm& algorithm) {
     algorithms.push_back(&algorithm);
 }
 
-void Simulator::optimal(std::vector<page_t>& accesses) {
+unsigned int Simulator::optimal(std::vector<page_t>& accesses) {
     int max_i = accesses.size();
 
     std::unordered_map<page_t, std::list<int>> uses;
@@ -29,7 +41,7 @@ void Simulator::optimal(std::vector<page_t>& accesses) {
 
     present_pages.clear();
 
-    faults = 0;
+    unsigned int faults = 0;
     page_t furthest_page = -1;
     page_t furthest_page_i = -1;
 
@@ -78,19 +90,16 @@ void Simulator::optimal(std::vector<page_t>& accesses) {
         }
     }
 
-    std::cout << "Ótimo: " << faults << " PFs" << std::endl;
+    return faults;
 }
 
 
-void Simulator::simulate(std::vector<page_t>& accesses, bool run_optimal) {
-    if (algorithms.size() > 0) {
-        std::cout << frame_amount << " quadros" << std::endl
-                << accesses.size() << " refs " << std::endl;
-    }
+SimulationResult Simulator::simulate(std::vector<page_t>& accesses, bool run_optimal) {
+    std::vector<SimulationEntry> result_entries;
 
     for (SubstitutionAlgorithm* algorithm : algorithms) {
         present_pages.clear();
-        faults = 0;
+        unsigned int faults = 0;
 
         for (page_t page : accesses) {
             if (present_pages.count(page)) {
@@ -113,9 +122,23 @@ void Simulator::simulate(std::vector<page_t>& accesses, bool run_optimal) {
             }
         }
 
-        std::cout << algorithm->name() << ": " << faults << " PFs" << std::endl;
+        result_entries.emplace_back(algorithm->name(), faults);
     
     }
     // Chamar algoritmo ótimo
-    if (run_optimal) optimal(accesses);
+    if (run_optimal) {
+        unsigned int optimal_faults = optimal(accesses);
+        result_entries.emplace_back("OPT", optimal_faults);
+    }
+
+    return SimulationResult(result_entries, accesses, frame_amount);
+}
+
+void print_simulation_result(const SimulationResult& simulation) {
+    std::cout << simulation.frame_amount << " quadros" << std::endl
+              << simulation.accesses.size() << " refs " << std::endl;
+
+    for (const SimulationEntry& entry : simulation.entries) {
+        std::cout << entry.name << ": " << entry.faults << " PFs" << std::endl;
+    }
 }
