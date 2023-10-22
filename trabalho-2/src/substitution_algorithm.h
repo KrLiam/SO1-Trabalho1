@@ -26,10 +26,15 @@ public:
     virtual void accessed(page_t) {};
 
     /**
-     * Recebe o id da página que gerou o page fault.
-     * Retorna a página que deve ser substituída.
-    */ 
-    virtual page_t replace(page_t page) = 0;
+     * Retorna o id da página a ser removida numa substituição.
+    */
+    virtual page_t remove() = 0;
+
+    /**
+     * Recebe o id de uma página a ser inserida após um page fault. 
+    */
+    virtual void insert(page_t page) = 0;
+    
 
     void simulate(std::vector<page_t>) {};
 };
@@ -41,12 +46,11 @@ public:
 
     const char* name() { return "FIFO"; }
 
-    virtual page_t replace(page_t page) {
+    virtual void insert(page_t page) {
         queue.push(page);
+    }
 
-        // se ainda há molduras livres, não retira nenhuma página
-        if (queue.size() <= frame_amount) return -1;
-
+    virtual page_t remove() {
         page_t page_to_remove = queue.front();
         queue.pop();
         return page_to_remove;
@@ -66,11 +70,11 @@ public:
         list.push_front(page);
     }
 
-    page_t replace(page_t page) {
-        list.push_front(page);
-        
-        if (list.size() <= frame_amount) return -1;
+    virtual void insert(page_t page) {
+        list.push_front(page);   
+    }
 
+    virtual page_t remove() {
         page_t page_to_remove = list.back();
         list.pop_back();
         return page_to_remove;

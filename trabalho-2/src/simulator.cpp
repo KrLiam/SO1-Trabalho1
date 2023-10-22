@@ -100,13 +100,15 @@ void Simulator::simulate(std::vector<page_t>& accesses, bool run_optimal) {
             else {
                 faults++;
                 // std::cout << "page fault " << page;
-                page_t page_to_remove = algorithm->replace(page);
-                if (page_to_remove >= 0) {
-                    present_pages.erase(page_to_remove);
-                    // std::cout << ", replaced page " << page_to_remove;
+
+                if (present_pages.size() >= frame_amount) {
+                    page_t removed_page = algorithm->remove();
+                    present_pages.erase(removed_page);
+                    // std::cout << " removed page " << removed_page;
                 }
                 // std::cout << std::endl;
 
+                algorithm->insert(page);
                 present_pages.insert(page);
             }
         }
