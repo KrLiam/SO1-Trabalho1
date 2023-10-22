@@ -82,9 +82,11 @@ void Simulator::optimal(std::vector<page_t>& accesses) {
 }
 
 
-void Simulator::simulate(std::vector<page_t>& accesses) {
-    std::cout << frame_amount << " quadros" << std::endl
-              << accesses.size() << " refs " << std::endl;
+void Simulator::simulate(std::vector<page_t>& accesses, bool run_optimal) {
+    if (algorithms.size() > 0) {
+        std::cout << frame_amount << " quadros" << std::endl
+                << accesses.size() << " refs " << std::endl;
+    }
 
     for (SubstitutionAlgorithm* algorithm : algorithms) {
         present_pages.clear();
@@ -113,5 +115,5 @@ void Simulator::simulate(std::vector<page_t>& accesses) {
     
     }
     // Chamar algoritmo ótimo
-    optimal(accesses);
+    if (run_optimal) optimal(accesses);
 }

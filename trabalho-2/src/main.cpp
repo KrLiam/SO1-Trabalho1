@@ -34,5 +34,5 @@ int main(int argc, char const *argv[])
     simulator.add_algorithm(lru);
 
     std::vector<page_t> input = read_input();
-    simulator.simulate(input);
+    simulator.simulate(input, true);
 }
