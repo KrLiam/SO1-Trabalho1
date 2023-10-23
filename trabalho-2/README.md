@@ -1,5 +1,5 @@
 
-# Trabalho I de Sistemas Operacionais II
+# Trabalho II de Sistemas Operacionais I
 
 ## Setup
 
@@ -11,5 +11,5 @@ mkdir build && cmake -B build
 
 ```sh
 make -C build
-./build/trabalho-2 <option>
+./build/trabalho-2 <n_molduras> < <arquivo_de_entrada>
 ```
