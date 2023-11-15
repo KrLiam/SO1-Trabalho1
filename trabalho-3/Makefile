@@ -1,16 +1,54 @@
-GXX=g++
+CXX ?= g++
 
-simplefs: shell.o fs.o disk.o
-	$(GXX) shell.o fs.o disk.o -o simplefs
+# caminho
+SRC_PATH = src
+BUILD_PATH = build
+BIN_PATH = $(BUILD_PATH)/bin
 
-shell.o: shell.cc
-	$(GXX) -Wall shell.cc -c -o shell.o -g
+# executavel
+BIN_NAME = simplefs
 
-fs.o: fs.cc fs.h
-	$(GXX) -Wall fs.cc -c -o fs.o -g
+SRC_EXT = cpp
 
-disk.o: disk.cc disk.h
-	$(GXX) -Wall disk.cc -c -o disk.o -g
+SOURCES = $(shell find $(SRC_PATH) -name '*.$(SRC_EXT)' | sort -k 1nr | cut -f2-)
+OBJECTS = $(SOURCES:$(SRC_PATH)/%.$(SRC_EXT)=$(BUILD_PATH)/%.o)
+DEPS = $(OBJECTS:.o=.d)
 
+# flags
+COMPILE_FLAGS = -std=c++17 -O3 -Wall -Wextra -g
+INCLUDES = -I include/ -I /usr/local/include
+
+LIBS =
+
+.PHONY: default_target
+default_target: release
+
+.PHONY: release
+release: export CXXFLAGS := $(CXXFLAGS) $(COMPILE_FLAGS)
+release: dirs
+	@$(MAKE) all
+
+.PHONY: dirs
+dirs:
+	@mkdir -p $(dir $(OBJECTS))
+	@mkdir -p $(BIN_PATH)
+
+.PHONY: clean
 clean:
-	rm simplefs disk.o fs.o shell.o
+	@$(RM) $(BIN_NAME)
+	@$(RM) -r $(BUILD_PATH)
+	@$(RM) -r $(BIN_PATH)
+
+.PHONY: all
+all: $(BIN_PATH)/$(BIN_NAME)
+	@$(RM) $(BIN_NAME)
+	@ln -s $(BIN_PATH)/$(BIN_NAME) $(BIN_NAME)
+
+# Criando o executável
+$(BIN_PATH)/$(BIN_NAME): $(OBJECTS)
+	$(CXX) $(OBJECTS) -o $@ ${LIBS}
+
+-include $(DEPS)
+
+$(BUILD_PATH)/%.o: $(SRC_PATH)/%.$(SRC_EXT)
+	$(CXX) $(CXXFLAGS) $(INCLUDES) -MP -MMD -c $< -o $@

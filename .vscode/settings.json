@@ -47,6 +47,14 @@
         "stdexcept": "cpp",
         "streambuf": "cpp",
         "cinttypes": "cpp",
-        "typeinfo": "cpp"
-    }
+        "typeinfo": "cpp",
+        "ctime": "cpp",
+        "optional": "cpp",
+        "iomanip": "cpp",
+        "sstream": "cpp",
+        "set": "cpp",
+        "unordered_set": "cpp",
+        "list": "cpp"
+    },
+    "cmake.sourceDirectory": "/home/krliam/Projects/UFSC/sistemas-operacionais/trabalho-2"
 }
