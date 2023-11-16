@@ -23,7 +23,10 @@ INE5412_FS::~INE5412_FS() {
 
 int INE5412_FS::fs_format()
 {
-	// FIXME  uma tentativa de formatar um disco que ja foi montado nao deve fazer nada e retornar falha
+	if (superblock.super.magic == FS_MAGIC) {
+		std::cout << "cannot format an already mounted disk." << std::endl;
+		return 0;
+	}
 
 	fs_block block;
 
@@ -53,6 +56,11 @@ int INE5412_FS::fs_format()
 
 void INE5412_FS::fs_debug()
 {
+	if (superblock.super.magic != FS_MAGIC) {
+		std::cout << "disk not mounted." << std::endl;
+		return;
+	}
+
 	union fs_block block;
 
 	disk->read(0, block.data);
@@ -244,6 +252,11 @@ bool INE5412_FS::deallocate_block(int blocknum) {
 
 
 int INE5412_FS::fs_create() {
+	if (superblock.super.magic != FS_MAGIC) {
+		std::cout << "disk not mounted." << std::endl;
+		return 0;
+	}
+
 	int inumber = get_next_inumber();
 	if (!inumber) return 0;
 
@@ -270,6 +283,11 @@ int INE5412_FS::fs_create() {
 }
 
 int INE5412_FS::fs_delete(int inumber) {
+	if (superblock.super.magic != FS_MAGIC) {
+		std::cout << "disk not mounted." << std::endl;
+		return 0;
+	}
+
 	if (!is_valid_inumber(inumber)) return 0;
 
 	int blocknum = get_inumber_blocknum(inumber);
@@ -324,6 +342,11 @@ int INE5412_FS::fs_delete(int inumber) {
 }
 
 int INE5412_FS::fs_getsize(int inumber) {
+	if (superblock.super.magic != FS_MAGIC) {
+		std::cout << "disk not mounted." << std::endl;
+		return 0;
+	}
+
 	if (!is_valid_inumber(inumber)) return 0;
 
 	int blocknum = get_inumber_blocknum(inumber);
@@ -341,6 +364,11 @@ int INE5412_FS::fs_getsize(int inumber) {
 }
 
 int INE5412_FS::fs_read(int inumber, char* data, int length, int offset) {
+	if (superblock.super.magic != FS_MAGIC) {
+		std::cout << "disk not mounted." << std::endl;
+		return 0;
+	}
+
 	fs_file file(*this, inumber);
 
 	if (!file.isvalid()) return 0;
@@ -350,6 +378,11 @@ int INE5412_FS::fs_read(int inumber, char* data, int length, int offset) {
 }
 
 int INE5412_FS::fs_write(int inumber, const char* data, int length, int offset) {
+	if (superblock.super.magic != FS_MAGIC) {
+		std::cout << "disk not mounted." << std::endl;
+		return 0;
+	}
+
 	fs_file file(*this, inumber);
 
 	if (!file.isvalid()) return 0;
