@@ -210,26 +210,13 @@ public:
             block_index = block_i;
         }
 
-        void set_pos(long pos) {
-            if (pos < 0) pos = 0;
-            if (pos > size()) pos = size();
-
-            this->pos = pos;
-            // std::cout << "mudou pos de file stream para " << pos << std::endl;
-            if (!eof()) load();
-        }
-
-        inline void incr_pos(int amount = 1) {
-            set_pos(pos + amount);
-        }
-
     public:
         fs_file(INE5412_FS& fs, int inumber) : fs(fs), inumber(inumber) {
             // FIXME seria interessante ter um método open separado
             // para carregar inode e bloco de dados para permitir
             // a abertura tardia
             inode = fs.read_inode(inumber);
-            set_pos(0);
+            seek_set(0);
         }
 
         ~fs_file() {
@@ -316,11 +303,16 @@ public:
             return true;
         }
 
-        void seek_set(long offset) {
-            set_pos(offset);
+        void seek_set(long pos) {
+            if (pos < 0) pos = 0;
+            if (pos > size()) pos = size();
+
+            this->pos = pos;
+            // std::cout << "mudou pos de file stream para " << pos << std::endl;
+            if (!eof()) load();
         }
         void seek_cur(long offset) {
-            set_pos(pos + offset);
+            seek_set(pos + offset);
         }
 
         /**
@@ -333,7 +325,7 @@ public:
          * ```
         */
         void seek_end(long offset = 0) {
-            set_pos(size() - offset);
+            seek_set(size() - offset);
         }
 
         char get_char() {
@@ -342,7 +334,7 @@ public:
             if (eof()) throw fs_eof();
 
             char ch = block.data[pos % Disk::DISK_BLOCK_SIZE];
-            incr_pos();
+            seek_cur(1);
             
             return ch;
         }
@@ -358,7 +350,7 @@ public:
             // marca o bloco atual como sujo para ser salvo
             block_dirty = true;
 
-            incr_pos();
+            seek_cur(1);
 
             return ch;
         }
