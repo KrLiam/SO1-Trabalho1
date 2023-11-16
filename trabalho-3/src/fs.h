@@ -3,7 +3,19 @@
 
 #include <cmath>
 #include <iostream>
+#include <exception>
 #include "disk.h"
+
+class fs_eof : std::exception {
+    std::string message;
+
+ public:
+    fs_eof() : message("reached file eof.") {}
+
+    virtual const char* what() const throw() {
+        return message.c_str();
+    }
+};
 
 class Bitmap {
 	char* bits;
@@ -327,7 +339,7 @@ public:
         char get_char() {
             if (block_index < 0) return 0;
 
-            if (eof()) return 0;
+            if (eof()) throw fs_eof();
 
             char ch = block.data[pos % Disk::DISK_BLOCK_SIZE];
             incr_pos();
@@ -356,11 +368,11 @@ public:
 
             int count = 0;
             for (int i = 0; i < size; i++) {
-                char ch = get_char();
-                if (!ch) break;
-
-                data[i] = ch;
-                count++;
+                try {
+                    data[i] = get_char();
+                    count++;
+                }
+                catch (fs_eof err) { break; }
             }
 
             return count;
@@ -368,7 +380,8 @@ public:
         int put_string(const char* str, int size) {
             int count = 0;
             for (int i = 0; i < size; i++) {
-                if (!put_char(str[i])) break;
+                char ch = put_char(str[i]);
+                // if (!ch) break;
                 count++;
             }
 
