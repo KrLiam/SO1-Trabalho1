@@ -17,14 +17,26 @@ class fs_eof : std::exception {
     }
 };
 
+class fs_max_file_size : std::exception {
+    std::string message;
+
+ public:
+    fs_max_file_size() : message("file reached max size.") {}
+
+    virtual const char* what() const throw() {
+        return message.c_str();
+    }
+};
+
 class Bitmap {
 	char* bits;
-    int arr_size;
+    int size;
 
 public:
 
 	Bitmap(int size) {
-        arr_size = ceil(static_cast<double>(size) / 8.0);
+        this->size = size;
+        int arr_size = ceil(static_cast<double>(size) / 8.0);
 
 		bits = new char[arr_size];
 
@@ -38,7 +50,7 @@ public:
 	}
 
     int get_size() const {
-        return arr_size * 8;
+        return size;
     }
 
     bool read(int blocknum) const {
@@ -61,27 +73,8 @@ public:
     }
 
     int search(bool bit) const {
-        if (bit) {
-            for (int i = 0; i < arr_size; i++) {
-                char value = bits[i];
-                if (value == 0) continue;
-
-                for (int j = 0; j < 8; j++) {
-                    if (value % 2 == 1) return i*8 + j;
-                    value >>= 1;
-                }
-            }
-        }
-        else {
-            for (int i = 0; i < arr_size; i++) {
-                char value = bits[i];
-                if (value == 0b11111111) continue;
-
-                for (int j = 0; j < 8; j++) {
-                    if (value % 2 == 0) return i*8 + j;
-                    value >>= 1;
-                }
-            }
+        for (int i = 0; i < size; i++) {
+            if (read(i) == bit) return i;
         }
 
         return -1;
@@ -329,8 +322,6 @@ public:
         }
 
         char get_char() {
-            if (block_index < 0) return 0;
-
             if (eof()) throw fs_eof();
 
             char ch = block.data[pos % Disk::DISK_BLOCK_SIZE];
@@ -341,8 +332,8 @@ public:
         char put_char(char ch) {
             if (eof()) {
                 bool extended = extend(1);
-                if (!extended) // std::cout << "falhou em extender tamanho do arquivo" << std::endl; 
-                if (!extended) return 0;
+                // if (!extended) std::cout << "falhou em extender tamanho do arquivo" << std::endl; 
+                if (!extended) throw fs_max_file_size();
             }
 
             block.data[pos % Disk::DISK_BLOCK_SIZE] = ch;
@@ -356,15 +347,16 @@ public:
         }
 
         int get_string(char* data, int size) {
-            if (block_index < 0) return 0;
-
             int count = 0;
+
             for (int i = 0; i < size; i++) {
                 try {
                     data[i] = get_char();
                     count++;
                 }
-                catch (fs_eof err) { break; }
+                catch (fs_eof err) {
+                    break;
+                }
             }
 
             return count;
@@ -372,9 +364,13 @@ public:
         int put_string(const char* str, int size) {
             int count = 0;
             for (int i = 0; i < size; i++) {
-                char ch = put_char(str[i]);
-                // if (!ch) break;
-                count++;
+                try {
+                    char ch = put_char(str[i]);
+                    count++;
+                }
+                catch (fs_max_file_size err) {
+                    break; 
+                }
             }
 
             return count;
