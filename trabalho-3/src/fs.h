@@ -354,7 +354,7 @@ public:
                     data[i] = get_char();
                     count++;
                 }
-                catch (fs_eof err) {
+                catch (fs_eof& err) {
                     break;
                 }
             }
@@ -365,10 +365,10 @@ public:
             int count = 0;
             for (int i = 0; i < size; i++) {
                 try {
-                    char ch = put_char(str[i]);
+                    put_char(str[i]);
                     count++;
                 }
-                catch (fs_max_file_size err) {
+                catch (fs_max_file_size& err) {
                     break; 
                 }
             }
