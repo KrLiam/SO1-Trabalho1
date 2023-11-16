@@ -251,7 +251,6 @@ int INE5412_FS::fs_create() {
 	int index = get_inumber_index(inumber);
 
 	fs_block block;
-	disk->read(blocknum, block.data);
 
 	fs_inode inode;
 	inode.isvalid = 1;

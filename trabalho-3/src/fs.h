@@ -275,12 +275,11 @@ public:
                         int indirect_ptr = fs.allocate_block();
                         // falhou em alocar um novo bloco
                         if (indirect_ptr < 0) return false;
-
                         inode.indirect = indirect_ptr;
-                        fs.disk->read(inode.indirect, indirect.data);
+
                         // std::cout << "alocou bloco de ponteiros " << indirect_ptr << std::endl;
 
-                        for (int j = 0; j < POINTERS_PER_INODE; j++) {
+                        for (int j = 0; j < POINTERS_PER_BLOCK; j++) {
                             indirect.pointers[j] = 0;
                         }
                     }
