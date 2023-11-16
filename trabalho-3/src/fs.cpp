@@ -75,7 +75,7 @@ void INE5412_FS::fs_debug()
 		fs_inode inode = read_inode(inumber);
 		if (!inode.isvalid) continue;
 
-		std::cout << "inode " << (inumber - 1) << std::endl;
+		std::cout << "inode " << inumber << std::endl;
 		std::cout << "    size: " << fs_getsize(inumber) << std::endl;
 
 		std::cout << "    direct blocks: ";
@@ -267,11 +267,12 @@ int INE5412_FS::fs_create() {
 	int index = get_inumber_index(inumber);
 
 	fs_block block;
+	disk->read(blocknum, block.data);
 
 	fs_inode inode;
 	inode.isvalid = 1;
 	inode.size = 0;
-	inode.indirect =0;
+	inode.indirect = 0;
 	for (int i = 0; i < POINTERS_PER_INODE; i++) {
 		inode.direct[i] = 0;
 	}

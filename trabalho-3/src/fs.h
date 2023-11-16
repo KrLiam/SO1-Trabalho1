@@ -17,6 +17,17 @@ class fs_eof : std::exception {
     }
 };
 
+class fs_disk_full : std::exception {
+    std::string message;
+
+ public:
+    fs_disk_full() : message("disk reached max size.") {}
+
+    virtual const char* what() const throw() {
+        return message.c_str();
+    }
+};
+
 class fs_max_file_size : std::exception {
     std::string message;
 
@@ -255,6 +266,8 @@ public:
                     inode.direct[next_block_i] = blocknum;
                 }
                 else {
+                    if (next_block_i >= INE5412_FS::POINTERS_PER_BLOCK) throw fs_max_file_size();
+
                     fs_block indirect;
 
                     // carrega vetor de ponteiros se presente
@@ -329,11 +342,12 @@ public:
             
             return ch;
         }
+
         char put_char(char ch) {
             if (eof()) {
                 bool extended = extend(1);
                 // if (!extended) std::cout << "falhou em extender tamanho do arquivo" << std::endl; 
-                if (!extended) throw fs_max_file_size();
+                if (!extended) throw fs_disk_full();
             }
 
             block.data[pos % Disk::DISK_BLOCK_SIZE] = ch;
@@ -367,6 +381,9 @@ public:
                 try {
                     put_char(str[i]);
                     count++;
+                }
+                catch (fs_disk_full& err) {
+                    break; 
                 }
                 catch (fs_max_file_size& err) {
                     break; 
