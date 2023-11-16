@@ -150,6 +150,9 @@ int INE5412_FS::fs_mount()
 
 			// se o inode estiver usando o bloco indireto
 			if (inode.indirect) {
+				// marca o bloco indireto como usado
+				bitmap->write(inode.indirect, 1);
+
 				// dereferencia bloco indireto no disco
 				fs_block indirect;
 				disk->read(inode.indirect, indirect.data);
