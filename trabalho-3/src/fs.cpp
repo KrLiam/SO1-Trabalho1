@@ -3,6 +3,15 @@
 
 #include "fs.h"
 
+ostream& operator<<(ostream& os, const Bitmap& bitmap)
+{
+    for (int i = 0; i < bitmap.get_size(); i++) {
+        std::cout << bitmap.read(i);
+    }
+    return os;
+}
+
+
 INE5412_FS::INE5412_FS(Disk* d) {
 	disk = d;
 	bitmap = NULL;
@@ -90,11 +99,7 @@ void INE5412_FS::fs_debug()
 		}
 	}
 
-	std::cout << "bitmap: ";
-	for (int i = 0; i < bitmap->get_size(); i++) {
-		std::cout << bitmap->read(i);
-	}
-	std::cout << std::endl;
+	std::cout << "bitmap: " << *bitmap << std::endl;
 }
 
 int INE5412_FS::fs_mount()

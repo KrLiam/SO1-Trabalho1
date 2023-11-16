@@ -22,14 +22,14 @@ public:
 	}
 
 	~Bitmap() {
-		delete bits;
+		delete[] bits;
 	}
 
-    int get_size() {
+    int get_size() const {
         return arr_size * 8;
     }
 
-    bool read(int blocknum) {
+    bool read(int blocknum) const {
         int i = blocknum / 8;
         int pos = blocknum % 8;
 
@@ -48,7 +48,7 @@ public:
         }
     }
 
-    int search(bool bit) {
+    int search(bool bit) const {
         if (bit) {
             for (int i = 0; i < arr_size; i++) {
                 char value = bits[i];
@@ -63,7 +63,7 @@ public:
         else {
             for (int i = 0; i < arr_size; i++) {
                 char value = bits[i];
-                if (value == 127) continue;
+                if (value == 0b11111111) continue;
 
                 for (int j = 0; j < 8; j++) {
                     if (value % 2 == 0) return i*8 + j;
@@ -74,6 +74,8 @@ public:
 
         return -1;
     }
+
+    friend ostream& operator<<(ostream& os, const Bitmap& dt);
 };
 
 
