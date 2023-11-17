@@ -190,6 +190,8 @@ int File_Ops::do_copyin(const char *filename, int inumber, INE5412_FS *fs)
 		return 0;
 	}
 
+	int prev_size = fs->fs_getsize(inumber);
+
 	while(1) {
 		result = fread(buffer,1,sizeof(buffer),file);
 		if(result <= 0) break;
@@ -206,6 +208,9 @@ int File_Ops::do_copyin(const char *filename, int inumber, INE5412_FS *fs)
 			}
 		}
 	}
+
+	int size_diff = prev_size - offset;
+	fs->fs_shrink(inumber, size_diff);
 
 	cout << offset << " bytes copied\n";
 

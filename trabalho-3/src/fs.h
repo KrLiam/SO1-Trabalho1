@@ -309,6 +309,52 @@ public:
             return true;
         }
 
+        int shrink(long bytes) {
+            if (bytes < 0) bytes = 0;
+            if (bytes > size()) bytes = size();
+
+            long prev_block_amount = allocated_size() / Disk::DISK_BLOCK_SIZE;
+
+            inode.size -= bytes;
+            inode_dirty = true;
+
+            long block_amount = allocated_size() / Disk::DISK_BLOCK_SIZE;
+
+            fs_block indirect;
+            bool indirect_dirty = false;
+            if (inode.indirect) {
+                fs.disk->read(inode.indirect, indirect.data);
+            }
+
+            for (int i = block_amount; i < prev_block_amount; i++) {
+                if (i < INE5412_FS::POINTERS_PER_INODE) {
+                    int blocknum = inode.direct[i];
+                    fs.deallocate_block(blocknum);
+                    inode.direct[i] = 0;
+                }
+                else {
+                    int j = i - INE5412_FS::POINTERS_PER_INODE;
+
+                    int blocknum = indirect.pointers[j];
+                    fs.deallocate_block(blocknum);
+                    indirect.pointers[j] = 0;
+                    indirect_dirty = true;
+                }
+            }
+
+            if (inode.indirect && indirect_dirty) {
+                if (!indirect.pointers[0]) {
+                    fs.deallocate_block(inode.indirect);
+                    inode.indirect = 0;
+                }
+                else {
+                    fs.disk->write(inode.indirect, indirect.data);
+                }
+            }
+
+            return bytes;
+        }
+
         void seek_set(long pos) {
             if (pos < 0) pos = 0;
             if (pos > size()) pos = size();
@@ -424,6 +470,7 @@ public:
 
     int  fs_read(int inumber, char* data, int length, int offset);
     int  fs_write(int inumber, const char* data, int length, int offset);
+    int  fs_shrink(int inumber, int amount);
 
 private:
     Disk* disk = NULL;

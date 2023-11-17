@@ -394,3 +394,16 @@ int INE5412_FS::fs_write(int inumber, const char* data, int length, int offset) 
 	file.seek_set(offset);
 	return file.put_string(data, length);
 }
+
+int INE5412_FS::fs_shrink(int inumber, int amount) {
+	if (superblock.super.magic != FS_MAGIC) {
+		std::cout << "disk not mounted." << std::endl;
+		return 0;
+	}
+
+	fs_file file(*this, inumber);
+
+	if (!file.isvalid()) return 0;
+
+	return file.shrink(amount);
+}
