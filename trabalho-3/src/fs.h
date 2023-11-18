@@ -309,7 +309,7 @@ public:
             return true;
         }
 
-        int shrink(long bytes) {
+        int truncate(long bytes) {
             if (bytes < 0) bytes = 0;
             if (bytes > size()) bytes = size();
 
@@ -470,7 +470,7 @@ public:
 
     int  fs_read(int inumber, char* data, int length, int offset);
     int  fs_write(int inumber, const char* data, int length, int offset);
-    int  fs_shrink(int inumber, int amount);
+    int  fs_truncate(int inumber, int amount);
 
 private:
     Disk* disk = NULL;

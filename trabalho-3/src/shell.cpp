@@ -210,7 +210,7 @@ int File_Ops::do_copyin(const char *filename, int inumber, INE5412_FS *fs)
 	}
 
 	int size_diff = prev_size - offset;
-	fs->fs_shrink(inumber, size_diff);
+	fs->fs_truncate(inumber, size_diff);
 
 	cout << offset << " bytes copied\n";
 

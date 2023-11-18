@@ -395,7 +395,7 @@ int INE5412_FS::fs_write(int inumber, const char* data, int length, int offset) 
 	return file.put_string(data, length);
 }
 
-int INE5412_FS::fs_shrink(int inumber, int amount) {
+int INE5412_FS::fs_truncate(int inumber, int amount) {
 	if (superblock.super.magic != FS_MAGIC) {
 		std::cout << "disk not mounted." << std::endl;
 		return 0;
@@ -405,5 +405,5 @@ int INE5412_FS::fs_shrink(int inumber, int amount) {
 
 	if (!file.isvalid()) return 0;
 
-	return file.shrink(amount);
+	return file.truncate(amount);
 }
