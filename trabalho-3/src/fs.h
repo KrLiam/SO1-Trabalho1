@@ -180,23 +180,24 @@ public:
          * Carrega o bloco de dados atual do disco para a memória.
         */
         void load() {
-            // FIXME testar se posição ta dentro do tamanho do arquivo
-
+            // pega o índice do bloco que contém a posição atual da stream
             int block_i = pos / Disk::DISK_BLOCK_SIZE;
-            // ignora se o bloco já está carregado
+            // ignora se este bloco já está carregado
             if (block_i == block_index) return;
 
-            // salvo o bloco carregado atualmente se estiver sujo
+            // salva o bloco carregado atualmente se estiver sujo
             if (block_dirty) save();
 
             if (block_i < INE5412_FS::POINTERS_PER_INODE) {
+                // o bloco carregado é um bloco direto
                 int blocknum = inode.direct[block_i];
 
                 if (!blocknum) return;
                 fs.disk->read(blocknum, block.data);
-                // std::cout << "carregou bloco " << blocknum << " no disco." << std::endl;
             }
             else {
+                // o bloco carregado é um bloco indireto
+
                 // inode não tem bloco indireto
                 if (!inode.indirect) return;
 
@@ -208,7 +209,6 @@ public:
                 if (!blocknum) return;
 
                 fs.disk->read(blocknum, block.data);
-                // std::cout << "carregou bloco " << blocknum << " no disco." << std::endl;
             }
 
             block_index = block_i;
@@ -224,12 +224,10 @@ public:
         }
 
         ~fs_file() {
-            // std::cout << "fechando arquivo de inumber " << inumber << std::endl;
             if (block_dirty) {
                 save();
             }
             if (inode_dirty) {
-                // std::cout << "salvou inode " << inumber << std::endl;
                 fs.write_inode(inumber, inode);
             }
         }
@@ -237,6 +235,10 @@ public:
         int isvalid() { return inode.isvalid; }
         long size() { return inode.size; }
 
+        /**
+         * Retorna a quantidade de bytes total dos blocos de dados alocados, sempre
+         * maior ou igual ao tamanho do arquivo.
+        */
         long allocated_size() {
             long blocks_used = ceil(static_cast<long double>(size()) / Disk::DISK_BLOCK_SIZE);
             return blocks_used * Disk::DISK_BLOCK_SIZE;
@@ -256,16 +258,18 @@ public:
             // aloca novos blocos de dados até ter tamanho o suficiente
             // para extender tamanho do arquivo
             if (size() + bytes > allocated_size()) {
+                // aloca um bloco de dados
                 int blocknum = fs.allocate_block();
-                if (blocknum < 0) return false;
+                if (blocknum < 0) return false; // disco cheio
                 
+                // o índice do próximo bloco de dados livre do inode
                 int next_block_i = allocated_size() / Disk::DISK_BLOCK_SIZE;
-                // std::cout << "alocou bloco para dados " << blocknum << " no indice " << next_block_i << std::endl;
 
                 if (next_block_i < INE5412_FS::POINTERS_PER_INODE) {
                     inode.direct[next_block_i] = blocknum;
                 }
                 else {
+                    // não há mais blocos indiretos livres
                     if (next_block_i >= INE5412_FS::POINTERS_PER_BLOCK) throw fs_max_file_size();
 
                     fs_block indirect;
@@ -282,8 +286,6 @@ public:
                         if (indirect_ptr < 0) return false;
                         inode.indirect = indirect_ptr;
 
-                        // std::cout << "alocou bloco de ponteiros " << indirect_ptr << std::endl;
-
                         for (int j = 0; j < POINTERS_PER_BLOCK; j++) {
                             indirect.pointers[j] = 0;
                         }
@@ -294,7 +296,6 @@ public:
                     indirect.pointers[ptr_i] = blocknum;
 
                     fs.disk->write(inode.indirect, indirect.data);
-                    // std::cout << "salvou bloco de ponteiros " << inode.indirect << std::endl;
                 }
             }
 
@@ -310,28 +311,37 @@ public:
         }
 
         int truncate(long bytes) {
+            // certifica que está removendo uma quantidade
+            // coerente de bytes do arquivo.
             if (bytes < 0) bytes = 0;
             if (bytes > size()) bytes = size();
 
+            // calcula a quantidade atual de blocos usados
             long prev_block_amount = allocated_size() / Disk::DISK_BLOCK_SIZE;
 
+            // diminui o tamanho do arquivo
             inode.size -= bytes;
             inode_dirty = true;
 
+            // recalcula a quantidade de blocos usados com base no novo tamanho
             long block_amount = allocated_size() / Disk::DISK_BLOCK_SIZE;
 
+            // pega o bloco indireto se tiver um
             fs_block indirect;
             bool indirect_dirty = false;
             if (inode.indirect) {
                 fs.disk->read(inode.indirect, indirect.data);
             }
 
+            // desaloca os blocos que estão sobrando
             for (int i = block_amount; i < prev_block_amount; i++) {
+                // blocos diretos
                 if (i < INE5412_FS::POINTERS_PER_INODE) {
                     int blocknum = inode.direct[i];
                     fs.deallocate_block(blocknum);
                     inode.direct[i] = 0;
                 }
+                // blocos indiretos
                 else {
                     int j = i - INE5412_FS::POINTERS_PER_INODE;
 
@@ -342,11 +352,14 @@ public:
                 }
             }
 
+            // se tiver bloco indireto e este foi escrito
             if (inode.indirect && indirect_dirty) {
+                // desaloca se o bloco de ponteiros estiver vazio
                 if (!indirect.pointers[0]) {
                     fs.deallocate_block(inode.indirect);
                     inode.indirect = 0;
                 }
+                // pelo contrário, salva
                 else {
                     fs.disk->write(inode.indirect, indirect.data);
                 }
@@ -359,8 +372,10 @@ public:
             if (pos < 0) pos = 0;
             if (pos > size()) pos = size();
 
+            // atualiza posição
             this->pos = pos;
-            // std::cout << "mudou pos de file stream para " << pos << std::endl;
+            // pede pra recarregar bloco de dados atual se
+            // não estiver no fim do arquivo
             if (!eof()) load();
         }
         void seek_cur(long offset) {
@@ -392,12 +407,10 @@ public:
         char put_char(char ch) {
             if (eof()) {
                 bool extended = extend(1);
-                // if (!extended) std::cout << "falhou em extender tamanho do arquivo" << std::endl; 
                 if (!extended) throw fs_disk_full();
             }
 
             block.data[pos % Disk::DISK_BLOCK_SIZE] = ch;
-            // std::cout << "escreveu '" << ch << "' na posição " << pos << std::endl; 
             // marca o bloco atual como sujo para ser salvo
             block_dirty = true;
 
@@ -438,19 +451,6 @@ public:
 
             return count;
         }
-
-        // template<typename T>
-        // int read(T* ptr, int member_amount) {
-        //     unsigned long member_size = sizeof(T); 
-
-        //     if (block_index < 0) return 0;
-        // }
-        // template<typename T>
-        // int write(T* str, int member_amount) {
-        //     unsigned long member_size = sizeof(T); 
-
-        //     if (block_index < 0) return 0;
-        // }
     };
 
 
