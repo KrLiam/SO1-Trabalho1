@@ -302,9 +302,6 @@ int INE5412_FS::fs_create() {
 
 	write_inode(inumber, inode);
 
-	superblock.super.ninodes++;
-	disk->write(0, superblock.data);
-
 	return inumber;
 }
 
@@ -351,10 +348,6 @@ int INE5412_FS::fs_delete(int inumber) {
 	}
 
 	write_inode(inumber, inode);
-
-	// decrementa numero de inodes no superbloco
-	superblock.super.ninodes--;
-	disk->write(0, superblock.data);
 
 	return 1;
 }
@@ -408,6 +401,15 @@ int INE5412_FS::fs_write(int inumber, const char* data, int length, int offset) 
 	return file.put_string(data, length);
 }
 
+/**
+ * Método para reduzir o tamanho de um arquivo. O arquivo perderá os 
+ * `amount` últimos bytes. Desaloca os últimos blocos de dados se ficarem
+ * inutilizados.
+ * 
+ * @param inumber: O inumber do inode que deseja-se reduzir o tamanho.
+ * @param amount: A quantidade de bytes que devem ser retirados do fim
+ * 		   do arquivo a fim de reduzir o tamanho do arquivo.
+*/
 int INE5412_FS::fs_truncate(int inumber, int amount) {
 	if (superblock.super.magic != FS_MAGIC) {
 		std::cout << "disk not mounted." << std::endl;
